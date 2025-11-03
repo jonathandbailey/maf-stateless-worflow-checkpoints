@@ -15,6 +15,8 @@ public class ConversationWorkflow(AIAgent reasonAgent, AIAgent actAgent, Checkpo
         var inputPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
         var builder = new WorkflowBuilder(reasonNode);
+
+        var currentState = request.State;
         
         builder.AddEdge(reasonNode, actNode);
         builder.AddEdge(actNode, inputPort);
@@ -63,10 +65,14 @@ public class ConversationWorkflow(AIAgent reasonAgent, AIAgent actAgent, Checkpo
 
             if (evt is RequestInfoEvent requestInfoEvent)
             {
-                if (request.State == ConversationWorkflowState.UserResponse)
+                if (currentState == ConversationWorkflowState.UserResponse)
                 {
+                    currentState = ConversationWorkflowState.Started;
+                    
                     var resp = requestInfoEvent.Request.CreateResponse(new UserResponse() { Message = request.Message});
                     await run.Run.SendResponseAsync(resp);
+
+
                 }
                 else
                 {
