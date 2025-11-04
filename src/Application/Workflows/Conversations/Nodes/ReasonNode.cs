@@ -3,7 +3,7 @@ using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 using Microsoft.Extensions.AI;
 
-namespace Application.Workflows.Conversations;
+namespace Application.Workflows.Conversations.Nodes;
 
 public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNode") , IMessageHandler<ChatMessage, ChatMessage>
 {

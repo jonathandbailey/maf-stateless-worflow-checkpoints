@@ -4,7 +4,7 @@ using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 using Microsoft.Extensions.AI;
 
-namespace Application.Workflows.Conversations;
+namespace Application.Workflows.Conversations.Nodes;
 
 public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMessageHandler<ChatMessage, ChatMessage>
 {
@@ -16,8 +16,12 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
         if (JsonOutputParser.HasJson(response.Text))
         {
             var routeAction = JsonOutputParser.Parse<RouteAction>(response.Text);
+
+            if (routeAction.Route == "ask_user")
+            {
+                await context.SendMessageAsync(new UserRequest(response.Text), cancellationToken: cancellationToken);
+            }
         }
-        
         
         return response.Messages.First();
     }
