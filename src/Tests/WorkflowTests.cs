@@ -1,6 +1,6 @@
 ﻿using Application.Agents;
 using Application.Workflows.Conversations;
-using Microsoft.Agents.AI;
+using Application.Workflows.Conversations.Dto;
 using Microsoft.Extensions.AI;
 using Moq;
 
@@ -9,24 +9,20 @@ namespace Tests;
 public class WorkflowTests
 {
     [Fact]
-    public async Task Test1()
+    public async Task Execute_WhenActAgentRequestsUserInput_ShouldReturnUserInputRequiredState()
     {
         var reasonAgent = new Mock<IAgent>();
 
         var actAgent = new Mock<IAgent>();
-
-        var reasonAgentResponse = new AgentRunResponse(new ChatMessage(ChatRole.Assistant, "User want to plan a trip to Paris. Departure Point is required."));
-        var actAgentResponse = new AgentRunResponse(new ChatMessage(ChatRole.Assistant, Data.AskUserDepartureCityResponse));
-
-
-        reasonAgent.Setup(x => x.RunAsync(It.IsAny<IEnumerable<ChatMessage>>(), null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(reasonAgentResponse);
-
-        actAgent.Setup(x => x.RunAsync(It.IsAny<IEnumerable<ChatMessage>>(), null, null, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(actAgentResponse);
-
+   
+        reasonAgent.SetupAgentResponse(Data.ReasonTripToParisDeparturePointRequired);
+        actAgent.SetupAgentResponse(Data.AskUserDepartureCityResponse);
+  
         var workFlow = new Workflow(reasonAgent.Object, actAgent.Object);
 
-        await workFlow.Execute(new ChatMessage(ChatRole.User, "I want to plan a trip to Paris"));
+        var response = await workFlow.Execute(new ChatMessage(ChatRole.User, Data.PlanTripToParisUserRequest));
+
+        Assert.NotNull(response);
+        Assert.Equal(WorkflowResponseState.UserInputRequired, response.State);
     }
 }

@@ -8,7 +8,7 @@ namespace Application.Workflows.Conversations;
 
 public class Workflow(IAgent reasonAgent, IAgent actAgent)
 {
-    public async Task Execute(ChatMessage message)
+    public async Task<WorkflowResponse> Execute(ChatMessage message)
     {
         var inputPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
@@ -33,7 +33,10 @@ public class Workflow(IAgent reasonAgent, IAgent actAgent)
 
             if (evt is RequestInfoEvent requestInfoEvent)
             {
+                return new WorkflowResponse(WorkflowResponseState.UserInputRequired);
             }
         }
+
+        return new WorkflowResponse(WorkflowResponseState.Completed);
     }
 }
