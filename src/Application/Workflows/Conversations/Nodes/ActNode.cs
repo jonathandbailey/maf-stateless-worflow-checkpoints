@@ -11,14 +11,18 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
     IMessageHandler<UserResponse>
 
 {
+    private List<ChatMessage> _messages = [];
+
     public async ValueTask HandleAsync(ActRequest request, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.StarActivity("Act-Node");
+        using var activity = Telemetry.StarActivity("Act");
 
         activity?.SetTag("Reason Request (Act Node)", request.Message);
 
-        var response = await agent.RunAsync(new List<ChatMessage> { request.Message }, cancellationToken: cancellationToken);
+        _messages.Add(request.Message);
+
+        var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
         if (JsonOutputParser.HasJson(response.Text))
         {
@@ -28,7 +32,9 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
             {
                 var cleanedResponse = JsonOutputParser.Remove(response.Text);
 
-                activity?.SetTag("Ask User:", cleanedResponse);
+                using var askUserActivity = Telemetry.StarActivity("Act-User-Request");
+
+                askUserActivity?.SetTag("RequestUser:", cleanedResponse);
 
                 await context.SendMessageAsync(new UserRequest(cleanedResponse), cancellationToken: cancellationToken);
             }
@@ -38,10 +44,25 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
     public async ValueTask HandleAsync(UserResponse userResponse, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        using var activity = Telemetry.StarActivity("Act-Node");
+        using var activity = Telemetry.StarActivity("Act");
 
         activity?.SetTag("User Response/Observation:", userResponse);
 
         await context.SendMessageAsync(new ActObservation(userResponse.Message), cancellationToken: cancellationToken);
+    }
+
+    protected override ValueTask OnCheckpointingAsync(IWorkflowContext context, CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.StarActivity("Act-Checkpoint-[save]");
+
+        return context.QueueStateUpdateAsync("act-node-messages", _messages, cancellationToken: cancellationToken);
+    }
+
+    protected override async ValueTask OnCheckpointRestoredAsync(IWorkflowContext context,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.StarActivity("Act-Checkpoint-[restore]");
+
+        _messages = (await context.ReadStateAsync<List<ChatMessage>>("act-node-messages", cancellationToken: cancellationToken))!;
     }
 }

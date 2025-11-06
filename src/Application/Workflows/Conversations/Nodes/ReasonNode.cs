@@ -10,14 +10,22 @@ namespace Application.Workflows.Conversations.Nodes;
 public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNode") , IMessageHandler<ChatMessage, ActRequest>,
     IMessageHandler<ActObservation, ChatMessage>
 {
+    private List<ChatMessage> _messages = [];
+    
     public async ValueTask<ActRequest> HandleAsync(ChatMessage message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.StarActivity("Reason-Node");
+        using var activity = Telemetry.StarActivity("Reason");
 
         activity?.SetTag("User", message.Text);
 
-        var response = await agent.RunAsync(new List<ChatMessage> { message }, cancellationToken: cancellationToken);
+        _messages.Add(message);
+        
+        var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
+
+        var responseMessage = response.Messages.First();
+        
+        _messages.Add(responseMessage);
 
         activity?.SetTag("Assistant", response.Messages.First().Text);
 
@@ -32,5 +40,20 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
         var response = await agent.RunAsync(new List<ChatMessage> { requestMessage }, cancellationToken: cancellationToken);
 
         return response.Messages.First();
+    }
+
+    protected override ValueTask OnCheckpointingAsync(IWorkflowContext context, CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.StarActivity("ReasonCheckpoint-[save]");
+
+        return context.QueueStateUpdateAsync("reason-node-messages", _messages, cancellationToken: cancellationToken);
+    }
+
+    protected override async ValueTask OnCheckpointRestoredAsync(IWorkflowContext context,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.StarActivity("Reason-Checkpoint-[restore]");
+
+        _messages = (await context.ReadStateAsync<List<ChatMessage>>("reason-node-messages", cancellationToken: cancellationToken))!;
     }
 }

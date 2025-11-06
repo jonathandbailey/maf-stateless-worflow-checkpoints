@@ -1,6 +1,7 @@
-﻿using System.Text.Json;
+﻿using Application.Observability;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Checkpointing;
+using System.Text.Json;
 
 namespace Application.Workflows.Conversations;
 
@@ -15,7 +16,12 @@ public class ConversationCheckpointStore : JsonCheckpointStore
 
     public override ValueTask<CheckpointInfo> CreateCheckpointAsync(string runId, JsonElement value, CheckpointInfo? parent = null)
     {
+        using var activity = Telemetry.StarActivity("Checkpointstore-Create");
+
         var checkpointInfo = new CheckpointInfo(runId, Guid.NewGuid().ToString());
+
+        activity?.SetTag("RunId", checkpointInfo.RunId);
+        activity?.SetTag("CheckpointId", checkpointInfo.CheckpointId);
 
         _checkpointElements.Add(checkpointInfo, value);
 

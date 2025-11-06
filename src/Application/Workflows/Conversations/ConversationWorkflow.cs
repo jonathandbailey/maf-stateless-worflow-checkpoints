@@ -1,4 +1,5 @@
 ﻿using Application.Agents;
+using Application.Observability;
 using Application.Workflows.Conversations.Dto;
 using Application.Workflows.Conversations.Nodes;
 using Microsoft.Agents.AI.Workflows;
@@ -69,16 +70,21 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, Checkpoin
     private async Task<Checkpointed<StreamingRun>> CreateStreamingRun(Workflow<ChatMessage> workflow,
         ChatMessage message)
     {
-        return _state switch
+        switch (_state)
         {
-            WorkflowState.Initialized => 
-                await InProcessExecution.StreamAsync(workflow, message, checkpointManager),
-            WorkflowState.WaitingForUserInput =>
-                await InProcessExecution.ResumeStreamAsync(workflow, _checkpointInfo, checkpointManager, _checkpointInfo.RunId),
-            
-
-            _ => throw new ArgumentOutOfRangeException()
-        };
+            case WorkflowState.Initialized:
+                return await InProcessExecution.StreamAsync(workflow, message, checkpointManager);
+            case WorkflowState.WaitingForUserInput:
+                var activity = Telemetry.StarActivity("Workflow-[resume]");
+                activity?.SetTag("RunId", _checkpointInfo.RunId);
+                activity?.SetTag("CheckpointId", _checkpointInfo.CheckpointId);
+                var run =  await InProcessExecution.ResumeStreamAsync(workflow, _checkpointInfo, checkpointManager,
+                    _checkpointInfo.RunId);
+                activity?.Dispose();
+                return run;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
     }
 
     private WorkflowResponse HandleRequestForUserInput(RequestInfoEvent requestInfoEvent)
