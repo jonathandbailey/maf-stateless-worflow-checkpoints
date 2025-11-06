@@ -1,5 +1,4 @@
-﻿using Api.Infrastructure.Settings;
-using Application.Agents;
+﻿using Application.Agents;
 using Application.Agents.Repository;
 using Application.Infrastructure;
 using Application.Services;

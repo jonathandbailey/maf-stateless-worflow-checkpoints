@@ -1,5 +1,4 @@
 ﻿using Application.Agents;
-using Application.Observability;
 using Application.Workflows.Conversations.Dto;
 using Application.Workflows.Conversations.Nodes;
 using Microsoft.Agents.AI.Workflows;
@@ -9,9 +8,6 @@ namespace Application.Workflows.Conversations;
 
 public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflowManager workflowManager)
 {
-    private WorkflowState _state  = WorkflowState.Initialized;
-    private CheckpointInfo? _checkpointInfo = null;
-
     public async Task<WorkflowResponse> Execute(ChatMessage message)
     {
         var inputPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
@@ -32,7 +28,10 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflow
 
         await foreach (var evt in run.Run.WatchStreamAsync())
         {
-            _state = _state == WorkflowState.Initialized ? WorkflowState.Executing : _state;
+            if (workflowManager.State == WorkflowState.Initialized)
+            {
+                workflowManager.Executing();
+            }
             
             if (evt is SuperStepCompletedEvent superStepCompletedEvt)
             {
@@ -40,13 +39,13 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflow
 
                 if (checkpoint != null)
                 {
-                    _checkpointInfo = checkpoint;
+                    workflowManager.CheckpointInfo = checkpoint;
                 }
             }
 
             if (evt is RequestInfoEvent requestInfoEvent)
             {
-                switch (_state)
+                switch (workflowManager.State)
                 {
                     case WorkflowState.Executing:
                     {
@@ -56,7 +55,7 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflow
                     {
                         var resp = requestInfoEvent.Request.CreateResponse(new UserResponse(message.Text));
 
-                        _state = WorkflowState.Executing;
+                        workflowManager.Executing();
                         await run.Run.SendResponseAsync(resp);
                         break;
                     }
@@ -70,17 +69,13 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflow
     private async Task<Checkpointed<StreamingRun>> CreateStreamingRun(Workflow<ChatMessage> workflow,
         ChatMessage message)
     {
-        switch (_state)
+        switch (workflowManager.State)
         {
             case WorkflowState.Initialized:
                 return await InProcessExecution.StreamAsync(workflow, message, workflowManager.CheckpointManager);
             case WorkflowState.WaitingForUserInput:
-                var activity = Telemetry.StarActivity("Workflow-[resume]");
-                activity?.SetTag("RunId", _checkpointInfo.RunId);
-                activity?.SetTag("CheckpointId", _checkpointInfo.CheckpointId);
-                var run =  await InProcessExecution.ResumeStreamAsync(workflow, _checkpointInfo, workflowManager.CheckpointManager,
-                    _checkpointInfo.RunId);
-                activity?.Dispose();
+                var run =  await InProcessExecution.ResumeStreamAsync(workflow, workflowManager.CheckpointInfo, workflowManager.CheckpointManager,
+                    workflowManager.CheckpointInfo.RunId);
                 return run;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -109,7 +104,7 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, IWorkflow
                 "Invalid request event: UserRequest message is empty");
         }
 
-        _state = WorkflowState.WaitingForUserInput;
+        workflowManager.WaitingForUserInput();
 
         return new WorkflowResponse(WorkflowResponseState.UserInputRequired, userRequest.Message);
     }

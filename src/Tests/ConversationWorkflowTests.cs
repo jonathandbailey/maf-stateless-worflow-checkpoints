@@ -1,5 +1,4 @@
-﻿using Api.Infrastructure.Settings;
-using Application.Agents;
+﻿using Application.Agents;
 using Application.Infrastructure;
 using Application.Workflows;
 using Application.Workflows.Conversations;
@@ -29,10 +28,12 @@ public class ConversationWorkflowTests(ITestOutputHelper outputHelper)
 
         var settingsMock = new Mock<IOptions<AzureStorageSeedSettings>>();
 
+        settingsMock.Setup(x => x.Value).Returns(new AzureStorageSeedSettings { ContainerName = "workflow"});
+
         reasonAgent.SetupAgentResponse(Data.ReasonTripToParisDeparturePointRequired);
         actAgent.SetupAgentResponse(Data.ActAgentDepartureCityResponse);
 
-        var workflowManager = new WorkflowManager(new FakeCheckpointStore(outputHelper), repositoryMock.Object,
+        var workflowManager = new WorkflowManager(repositoryMock.Object,
             settingsMock.Object);
 
         await workflowManager.Initialize(sessionId);
