@@ -45,6 +45,8 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
         var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
+        _messages.Add(response.Messages.First());
+
         activity?.SetTag("Assistant", response.Messages.First().Text);
 
         return new ActRequest(response.Messages.First());

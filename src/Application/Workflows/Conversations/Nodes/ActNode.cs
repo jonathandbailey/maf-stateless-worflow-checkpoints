@@ -24,6 +24,8 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
 
         var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
+        _messages.Add(response.Messages.First());
+
         activity?.SetTag("Act-[response]", response.Messages.First().Text);
 
         if (JsonOutputParser.HasJson(response.Text))
