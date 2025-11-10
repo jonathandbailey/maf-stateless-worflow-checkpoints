@@ -83,4 +83,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
     }
 }
 
-internal sealed class ReasonActWorkflowCompleteEvent(string message) : WorkflowEvent(message) { }
+internal sealed class ReasonActWorkflowCompleteEvent(string message) : WorkflowEvent(message)
+{
+    public string Message { get; } = message;
+}

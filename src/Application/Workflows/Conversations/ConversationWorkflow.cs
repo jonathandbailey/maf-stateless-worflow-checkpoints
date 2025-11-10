@@ -51,7 +51,7 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, Checkpoin
 
             if (evt is ReasonActWorkflowCompleteEvent reasonActWorkflowCompleteEvent)
             {
-                return new WorkflowResponse(WorkflowResponseState.Completed, reasonActWorkflowCompleteEvent.Data?.ToString());
+                return new WorkflowResponse(WorkflowResponseState.Completed, reasonActWorkflowCompleteEvent.Message);
             }
 
             if (evt is RequestInfoEvent requestInfoEvent)
