@@ -30,10 +30,7 @@ public class ApplicationService(IAgentFactory agentFactory, IWorkflowManager wor
 
         var checkpointManager = CheckpointManager.CreateJson(new ConversationCheckpointStore(repository));
 
-        var workflow = new ConversationWorkflow(reasonAgent, actAgent, checkpointManager);
-
-        workflow.State = state.State;
-        workflow.CheckpointInfo = state.CheckpointInfo;
+        var workflow = new ConversationWorkflow(reasonAgent, actAgent, checkpointManager,state.CheckpointInfo, state.State);
 
         var response = await workflow.Execute(new ChatMessage(ChatRole.User, request.Message));
 

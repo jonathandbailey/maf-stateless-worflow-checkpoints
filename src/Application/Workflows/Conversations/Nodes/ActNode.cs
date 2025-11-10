@@ -50,6 +50,9 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
                 using var askUserActivity = Telemetry.StarActivity("Act-[complete]");
 
                 askUserActivity?.SetTag("Response:", cleanedResponse);
+
+                await context.AddEventAsync(new ReasonActWorkflowCompleteEvent(cleanedResponse), cancellationToken);
+
             }
         }
         else
@@ -79,3 +82,5 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
         _messages = (await context.ReadStateAsync<List<ChatMessage>>("act-node-messages", cancellationToken: cancellationToken))!;
     }
 }
+
+internal sealed class ReasonActWorkflowCompleteEvent(string message) : WorkflowEvent(message) { }

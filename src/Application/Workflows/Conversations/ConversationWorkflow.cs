@@ -1,5 +1,4 @@
 ﻿using Application.Agents;
-using Application.Observability;
 using Application.Workflows.Conversations.Dto;
 using Application.Workflows.Conversations.Nodes;
 using Microsoft.Agents.AI.Workflows;
@@ -7,13 +6,13 @@ using Microsoft.Extensions.AI;
 
 namespace Application.Workflows.Conversations;
 
-public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManager checkpointManager)
+public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManager checkpointManager, CheckpointInfo checkpointInfo, WorkflowState state)
 {
-    public CheckpointManager CheckpointManager { get; private set; } = checkpointManager;
+    private CheckpointManager CheckpointManager { get; set; } = checkpointManager;
 
-    public CheckpointInfo? CheckpointInfo { get; set; }
+    public CheckpointInfo? CheckpointInfo { get; private set; } = checkpointInfo;
 
-    public WorkflowState State { get; set; } = WorkflowState.Initialized;
+    public WorkflowState State { get; private set; } = state;
 
     public async Task<WorkflowResponse> Execute(ChatMessage message)
     {
@@ -31,7 +30,7 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, Checkpoin
 
         var workflow = await builder.BuildAsync<ChatMessage>();
 
-        var run = await CreateStreamingRun(workflow, message);
+        var run = await workflow.CreateStreamingRun(message, State, CheckpointManager, CheckpointInfo);
 
         await foreach (var evt in run.Run.WatchStreamAsync())
         {
@@ -50,13 +49,22 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, Checkpoin
                 }
             }
 
+            if (evt is ReasonActWorkflowCompleteEvent reasonActWorkflowCompleteEvent)
+            {
+                return new WorkflowResponse(WorkflowResponseState.Completed, reasonActWorkflowCompleteEvent.Data?.ToString());
+            }
+
             if (evt is RequestInfoEvent requestInfoEvent)
             {
                 switch (State)
                 {
                     case WorkflowState.Executing:
                     {
-                        return HandleRequestForUserInput(requestInfoEvent);
+                        var response = requestInfoEvent.HandleRequestForUserInput();
+
+                        State = WorkflowState.WaitingForUserInput;
+
+                        return response;
                     }
                     case WorkflowState.WaitingForUserInput:
                     {
@@ -71,74 +79,6 @@ public class ConversationWorkflow(IAgent reasonAgent, IAgent actAgent, Checkpoin
         }
 
         return new WorkflowResponse(WorkflowResponseState.Completed, string.Empty);
-    }
-
-    private async Task<Checkpointed<StreamingRun>> CreateStreamingRun(Workflow<ChatMessage> workflow,
-        ChatMessage message)
-    {
-        using var workflowActivity = Telemetry.StarActivity("Workflow-[create-run]");
-
-        workflowActivity?.SetTag("State:", State);
-
-        switch (State)
-        {
-            case WorkflowState.Initialized:
-                return await StartStreamingRun(workflow, message);
-            case WorkflowState.WaitingForUserInput:
-                return await ResumeStreamingRun(workflow, message);
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-    }
-
-    private async Task<Checkpointed<StreamingRun>> StartStreamingRun(Workflow<ChatMessage> workflow,
-        ChatMessage message)
-    {
-        using var workflowActivity = Telemetry.StarActivity("Workflow-[start]");
-
-
-        return await InProcessExecution.StreamAsync(workflow, message, CheckpointManager);
-    }
-
-    private async Task<Checkpointed<StreamingRun>> ResumeStreamingRun(Workflow<ChatMessage> workflow,
-        ChatMessage message)
-    {
-        var run = await InProcessExecution.ResumeStreamAsync(workflow, CheckpointInfo, CheckpointManager,
-            CheckpointInfo.RunId);
-
-        using var workflowActivity = Telemetry.StarActivity("Workflow-[resume]");
-
-        workflowActivity?.SetTag("RunId:", CheckpointInfo.RunId);
-        workflowActivity?.SetTag("CheckpointId:", CheckpointInfo.CheckpointId);
-
-        return run;
-
-    }
-    private WorkflowResponse HandleRequestForUserInput(RequestInfoEvent requestInfoEvent)
-    {
-        var data = requestInfoEvent.Data as ExternalRequest;
-
-        if (data?.Data == null)
-        {
-            return new WorkflowResponse(WorkflowResponseState.Error,
-                "Invalid request event: missing data");
-        }
-
-        if (data.Data.AsType(typeof(UserRequest)) is not UserRequest userRequest)
-        {
-            return new WorkflowResponse(WorkflowResponseState.Error,
-                "Invalid request event: unable to parse UserRequest");
-        }
-
-        if (string.IsNullOrWhiteSpace(userRequest.Message))
-        {
-            return new WorkflowResponse(WorkflowResponseState.Error,
-                "Invalid request event: UserRequest message is empty");
-        }
-
-        State = WorkflowState.WaitingForUserInput;
-
-        return new WorkflowResponse(WorkflowResponseState.UserInputRequired, userRequest.Message);
     }
 }
 

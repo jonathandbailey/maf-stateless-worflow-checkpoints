@@ -41,7 +41,7 @@ public class ConversationWorkflowTests(ITestOutputHelper outputHelper)
 
         var workFlow = new ConversationWorkflow(
             reasonAgent.Object,
-            actAgent.Object, CheckpointManager.CreateJson(new FakeCheckpointStore(outputHelper)));
+            actAgent.Object, CheckpointManager.CreateJson(new FakeCheckpointStore(outputHelper)), null, WorkflowState.Initialized);
 
         var response = await workFlow.Execute(new ChatMessage(ChatRole.User, Data.PlanTripToParisUserRequest));
 
