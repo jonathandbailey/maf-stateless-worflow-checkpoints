@@ -16,7 +16,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
     public async ValueTask<ActRequest> HandleAsync(ChatMessage message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Start("reason_handle_request");
+        using var activity = Telemetry.Start("ReasonHandleRequest");
 
         activity?.SetTag("react.node", "reason_node");
 
@@ -25,11 +25,11 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
         _messages.Add(message);
 
-        activity?.AddEvent(new ActivityEvent("llm_request_sent"));
+        activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
 
         var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
-        activity?.AddEvent(new ActivityEvent("llm_response_received"));
+        activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
 
         var responseMessage = response.Messages.First();
@@ -44,7 +44,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
     public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        using var activity = Telemetry.Start("reason_handle_observe");
+        using var activity = Telemetry.Start("ReasonHandleObserve");
 
         activity?.SetTag("react.observation.response_message", actObservation.Message);
 
@@ -52,13 +52,13 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
         _messages.Add(message);
 
-        activity?.AddEvent(new ActivityEvent("llm_request_sent"));
+        activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
 
         var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
         _messages.Add(response.Messages.First());
 
-        activity?.AddEvent(new ActivityEvent("llm_response_received"));
+        activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
         activity?.SetTag("react.output.message", response.Messages.First().Text);
 

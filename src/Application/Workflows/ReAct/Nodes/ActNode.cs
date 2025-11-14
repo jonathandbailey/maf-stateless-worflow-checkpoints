@@ -17,7 +17,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
     public async ValueTask HandleAsync(ActRequest request, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Start("act_handle_request");
+        using var activity = Telemetry.Start("ActHandleRequest");
         
         activity?.SetTag("react.node", "act_node");
 
@@ -26,11 +26,11 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
 
         _messages.Add(request.Message);
 
-        activity?.AddEvent(new ActivityEvent("llm_request_sent"));
+        activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
 
         var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
 
-        activity?.AddEvent(new ActivityEvent("llm_response_received"));
+        activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
         _messages.Add(response.Messages.First());
 
@@ -46,7 +46,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
 
             if (routeAction.Route == "ask_user")
             {
-                activity?.AddEvent(new ActivityEvent("react_user_request"));
+                activity?.AddEvent(new ActivityEvent("ReactUserRequest"));
                 activity?.SetTag("react.user.message", cleanedResponse);
 
                 await context.SendMessageAsync(new UserRequest(cleanedResponse), cancellationToken: cancellationToken);
@@ -54,7 +54,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
 
             if (routeAction.Route == "complete")
             {
-                activity?.AddEvent(new ActivityEvent("react_complete"));
+                activity?.AddEvent(new ActivityEvent("ReactComplete"));
                 activity?.SetTag("react.complete.result", cleanedResponse);
 
                 await context.AddEventAsync(new ReasonActWorkflowCompleteEvent(cleanedResponse), cancellationToken);
@@ -70,7 +70,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMe
     public async ValueTask HandleAsync(UserResponse userResponse, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        using var activity = Telemetry.Start("act_handle_user_response");
+        using var activity = Telemetry.Start("ActHandleUserResponse");
 
         activity?.SetTag("react.user.response_message", userResponse.Message);
 

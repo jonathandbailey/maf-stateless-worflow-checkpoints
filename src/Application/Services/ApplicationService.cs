@@ -14,18 +14,10 @@ public class ApplicationService(IAgentFactory agentFactory, IWorkflowRepository 
 {
     public async Task<ConversationResponse> Execute(ConversationRequest request)
     {
-        var initializeActivity = Telemetry.Start("Initialize");
-
         var reasonAgent = await agentFactory.CreateReasonAgent();
 
         var actAgent = await agentFactory.CreateActAgent();
-      
-        initializeActivity?.Dispose();
-
-        var workflowActivity = Telemetry.Start("Workflow");
-
-        workflowActivity?.SetTag("User Input", request.Message);
-   
+     
         var state = await workflowRepository.LoadAsync(request.SessionId);
 
         var checkpointManager = CheckpointManager.CreateJson(new CheckpointStore(repository));
@@ -33,9 +25,7 @@ public class ApplicationService(IAgentFactory agentFactory, IWorkflowRepository 
         var workflow = new ReActWorkflow(reasonAgent, actAgent, checkpointManager,state.CheckpointInfo, state.State);
 
         var response = await workflow.Execute(new ChatMessage(ChatRole.User, request.Message));
-
-        workflowActivity?.Dispose();
-
+  
         await workflowRepository.SaveAsync(request.SessionId, workflow.State, workflow.CheckpointInfo);
 
         return new ConversationResponse(request.SessionId, response.Message);

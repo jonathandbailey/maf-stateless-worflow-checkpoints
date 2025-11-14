@@ -1,4 +1,5 @@
 ﻿using Application.Agents;
+using Application.Observability;
 using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReAct.Nodes;
 using Microsoft.Agents.AI.Workflows;
@@ -16,6 +17,13 @@ public class ReActWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManage
 
     public async Task<WorkflowResponse> Execute(ChatMessage message)
     {
+        using var activity = Telemetry.Start("WorkflowExecute");
+
+        activity?.AddTag("workflow.state", State.ToString());
+        activity?.AddTag("workflow.instance.id", CheckpointInfo?.CheckpointId);
+        activity?.AddTag("workflow.has_checkpoint", (CheckpointInfo != null).ToString());
+        activity?.AddTag("workflow.user.message", message.Text);
+
         var workflow = await BuildWorkflow();
 
         var run = await workflow.CreateStreamingRun(message, State, CheckpointManager, CheckpointInfo);
