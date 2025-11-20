@@ -5,6 +5,7 @@ using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 using Microsoft.Extensions.AI;
 using System.Diagnostics;
+using System.Threading;
 
 namespace Application.Workflows.ReAct.Nodes;
 
@@ -20,9 +21,27 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
         activity?.SetTag("react.node", "reason_node");
 
-
         activity?.SetTag("react.input.message", message.Text);
+        
+        return await Process(message, activity, cancellationToken);
+    }
 
+    public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.Start("ReasonHandleObserve");
+
+        activity?.SetTag("react.node", "reason_node");
+
+        activity?.SetTag("react.observation.response_message", actObservation.Message);
+
+        var message = new ChatMessage(ChatRole.User, actObservation.Message);
+
+        return await Process(message, activity, cancellationToken);
+    }
+
+    private async Task<ActRequest> Process(ChatMessage message, Activity? activity, CancellationToken cancellationToken)
+    {
         _messages.Add(message);
 
         activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
@@ -33,32 +52,8 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
 
         var responseMessage = response.Messages.First();
-        
+
         _messages.Add(responseMessage);
-
-        activity?.SetTag("react.output.message", response.Messages.First().Text);
-  
-        return new ActRequest(response.Messages.First());
-    }
-
-    public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,
-        CancellationToken cancellationToken = new CancellationToken())
-    {
-        using var activity = Telemetry.Start("ReasonHandleObserve");
-
-        activity?.SetTag("react.observation.response_message", actObservation.Message);
-
-        var message = new ChatMessage(ChatRole.User, actObservation.Message);
-
-        _messages.Add(message);
-
-        activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
-
-        var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
-
-        _messages.Add(response.Messages.First());
-
-        activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
         activity?.SetTag("react.output.message", response.Messages.First().Text);
 
