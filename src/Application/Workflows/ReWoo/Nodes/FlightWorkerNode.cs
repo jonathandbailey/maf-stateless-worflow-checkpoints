@@ -1,5 +1,6 @@
 ﻿using Application.Agents;
 using Application.Observability;
+using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReWoo.Dto;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
@@ -29,14 +30,14 @@ public class FlightWorkerNode(IAgent agent) : ReflectingExecutor<FlightWorkerNod
 
         activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
 
-        var response = await agent.RunAsync(_messages, cancellationToken: cancellationToken);
+        var response = await agent.RunAsync(new List<ChatMessage> { new(ChatRole.User, serialized) }, cancellationToken: cancellationToken);
 
         activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
         var responseMessage = response.Messages.First();
 
-        _messages.Add(responseMessage);
-
         activity?.SetTag("re-woo.output.message", response.Messages.First().Text);
+
+        await context.SendMessageAsync(new ArtifactStorageDto(message.ArtifactKey, responseMessage.Text), cancellationToken: cancellationToken);
     }
 }

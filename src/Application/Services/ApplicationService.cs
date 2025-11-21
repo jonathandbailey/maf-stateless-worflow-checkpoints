@@ -1,5 +1,4 @@
-﻿using Application.Agents;
-using Application.Infrastructure;
+﻿using Application.Infrastructure;
 using Application.Workflows;
 using Application.Workflows.ReAct.Dto;
 using Microsoft.Extensions.AI;
@@ -7,28 +6,22 @@ using Microsoft.Agents.AI.Workflows;
 
 namespace Application.Services;
 
-public class ApplicationService(IAgentFactory agentFactory, IWorkflowRepository workflowRepository, ICheckpointRepository repository)
+public class ApplicationService(IWorkflowFactory workflowFactory, IWorkflowRepository workflowRepository, ICheckpointRepository repository)
     : IApplicationService
 {
     public async Task<ConversationResponse> Execute(ConversationRequest request)
     {
-        var reasonAgent = await agentFactory.CreateReasonAgent();
-
-        var actAgent = await agentFactory.CreateActAgent();
-
-        var orchestrationAgent = await agentFactory.CreateOrchestrationAgent();
-
-        var flightAgent = await agentFactory.CreateFlightWorkerAgent();
-     
+        var workflow = await workflowFactory.Create();
+        
         var state = await workflowRepository.LoadAsync(request.SessionId);
 
         var checkpointManager = CheckpointManager.CreateJson(new CheckpointStore(repository));
 
-        var workflow = new ReActWooWorkflow(reasonAgent, actAgent, orchestrationAgent, flightAgent,checkpointManager, state.CheckpointInfo, state.State);
+        var travelWorkflow = new TravelWorkflow(workflow, checkpointManager, state.CheckpointInfo, state.State);
 
-        var response = await workflow.Execute(new ChatMessage(ChatRole.User, request.Message));
+        var response = await travelWorkflow.Execute(new ChatMessage(ChatRole.User, request.Message));
   
-        await workflowRepository.SaveAsync(request.SessionId, workflow.State, workflow.CheckpointInfo);
+        await workflowRepository.SaveAsync(request.SessionId, travelWorkflow.State, travelWorkflow.CheckpointInfo);
 
         return new ConversationResponse(request.SessionId, response.Message);
     }

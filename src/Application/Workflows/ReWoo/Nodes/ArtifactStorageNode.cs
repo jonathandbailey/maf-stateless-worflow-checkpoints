@@ -1,0 +1,25 @@
+﻿using Application.Infrastructure;
+using Application.Observability;
+using Application.Workflows.ReWoo.Dto;
+using Azure;
+using Microsoft.Agents.AI.Workflows;
+using Microsoft.Agents.AI.Workflows.Reflection;
+
+namespace Application.Workflows.ReWoo.Nodes;
+
+public class ArtifactStorageNode(IArtifactRepository artifactRepository) : ReflectingExecutor<ArtifactStorageNode>("ArtifactStorageNode"), IMessageHandler<ArtifactStorageDto>
+{
+    public async ValueTask HandleAsync(ArtifactStorageDto message, IWorkflowContext context,
+        CancellationToken cancellationToken = new CancellationToken())
+    {
+        using var activity = Telemetry.Start("ArtifactStorageHandleRequest");
+
+        activity?.SetTag("re-woo.node", "artifact_storage_node");
+
+        activity?.SetTag("re-woo.input.message", message.Content);
+
+        await artifactRepository.SaveAsync(Guid.NewGuid(), message.Content, message.Key);
+
+
+    }
+}

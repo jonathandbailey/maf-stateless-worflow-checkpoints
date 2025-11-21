@@ -1,15 +1,12 @@
-﻿using Application.Agents;
-using Application.Observability;
+﻿using Application.Observability;
 using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReAct.Nodes;
-using Application.Workflows.ReWoo.Dto;
-using Application.Workflows.ReWoo.Nodes;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Extensions.AI;
 
 namespace Application.Workflows;
 
-public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orchestrationAgent, IAgent flightAgent, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
+public class TravelWorkflow(Workflow<ChatMessage> workflow, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
 {
     private CheckpointManager CheckpointManager { get; set; } = checkpointManager;
 
@@ -26,8 +23,6 @@ public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orches
         activity?.AddTag("workflow.has_checkpoint", (CheckpointInfo != null).ToString());
         activity?.AddTag("workflow.user.message", message.Text);
 
-        var workflow = await BuildWorkflow();
-
         var run = await workflow.CreateStreamingRun(message, State, CheckpointManager, CheckpointInfo);
 
         await foreach (var evt in run.Run.WatchStreamAsync())
@@ -36,7 +31,7 @@ public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orches
             {
                 State = WorkflowState.Executing;
             }
-            
+
             if (evt is SuperStepCompletedEvent superStepCompletedEvt)
             {
                 var checkpoint = superStepCompletedEvt.CompletionInfo!.Checkpoint;
@@ -77,44 +72,6 @@ public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orches
         }
 
         return new WorkflowResponse(WorkflowState.Completed, string.Empty);
-    }
-
-    private async Task<Workflow<ChatMessage>> BuildWorkflow()
-    {
-        var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
-
-        var reasonNode = new ReasonNode(reasonAgent);
-        var actNode = new ActNode(actAgent);
-        var orchestrationNode = new OrchestrationNode(orchestrationAgent);
-
-        var flightWorkerNode = new FlightWorkerNode(flightAgent);
-        var hotelWorkerNode = new HotelWorkerNode();
-        var trainWorkerNode = new TrainWorkerNode();
-
-        var builder = new WorkflowBuilder(reasonNode);
-
-        builder.AddEdge(reasonNode, actNode);
-        builder.AddEdge(actNode, requestPort);
-        builder.AddEdge(requestPort, actNode);
-        builder.AddEdge(actNode, reasonNode);
-        builder.AddEdge(actNode, orchestrationNode);
-
-        builder.AddEdge<OrchestratorWorkerTaskDto>(
-            source: orchestrationNode, 
-            target:flightWorkerNode, 
-            condition: result => result?.Worker == "research_flights");
-
-        builder.AddEdge<OrchestratorWorkerTaskDto>(
-            source: orchestrationNode,
-            target: trainWorkerNode,
-            condition: result => result?.Worker == "research_trains");
-
-        builder.AddEdge<OrchestratorWorkerTaskDto>(
-            source: orchestrationNode,
-            target: hotelWorkerNode,
-            condition: result => result?.Worker == "research_hotels");
-
-        return await builder.BuildAsync<ChatMessage>();
     }
 }
 
