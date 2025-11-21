@@ -17,12 +17,14 @@ public class ApplicationService(IAgentFactory agentFactory, IWorkflowRepository 
         var actAgent = await agentFactory.CreateActAgent();
 
         var orchestrationAgent = await agentFactory.CreateOrchestrationAgent();
+
+        var flightAgent = await agentFactory.CreateFlightWorkerAgent();
      
         var state = await workflowRepository.LoadAsync(request.SessionId);
 
         var checkpointManager = CheckpointManager.CreateJson(new CheckpointStore(repository));
 
-        var workflow = new ReActWooWorkflow(reasonAgent, actAgent, orchestrationAgent, checkpointManager, state.CheckpointInfo, state.State);
+        var workflow = new ReActWooWorkflow(reasonAgent, actAgent, orchestrationAgent, flightAgent,checkpointManager, state.CheckpointInfo, state.State);
 
         var response = await workflow.Execute(new ChatMessage(ChatRole.User, request.Message));
   

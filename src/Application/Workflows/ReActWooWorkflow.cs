@@ -9,7 +9,7 @@ using Microsoft.Extensions.AI;
 
 namespace Application.Workflows;
 
-public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orchestrationAgent, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
+public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orchestrationAgent, IAgent flightAgent, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
 {
     private CheckpointManager CheckpointManager { get; set; } = checkpointManager;
 
@@ -87,7 +87,7 @@ public class ReActWooWorkflow(IAgent reasonAgent, IAgent actAgent, IAgent orches
         var actNode = new ActNode(actAgent);
         var orchestrationNode = new OrchestrationNode(orchestrationAgent);
 
-        var flightWorkerNode = new FlightWorkerNode();
+        var flightWorkerNode = new FlightWorkerNode(flightAgent);
         var hotelWorkerNode = new HotelWorkerNode();
         var trainWorkerNode = new TrainWorkerNode();
 

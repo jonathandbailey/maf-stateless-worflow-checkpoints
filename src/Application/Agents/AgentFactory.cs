@@ -25,6 +25,11 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IOptions<
         return await Create("Orchestration-Agent");
     }
 
+    public async Task<IAgent> CreateFlightWorkerAgent()
+    {
+        return await Create("Flight-Agent");
+    }
+
     private async Task<IAgent> Create(string templateName)
     {
         var template = await templateRepository.Load(templateName);
@@ -48,4 +53,5 @@ public interface IAgentFactory
     Task<IAgent> CreateReasonAgent();
     Task<IAgent> CreateActAgent();
     Task<IAgent> CreateOrchestrationAgent();
+    Task<IAgent> CreateFlightWorkerAgent();
 }
