@@ -24,7 +24,7 @@ public class ReActWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManage
         activity?.AddTag("workflow.has_checkpoint", (CheckpointInfo != null).ToString());
         activity?.AddTag("workflow.user.message", message.Text);
 
-        var workflow = await BuildWorkflow();
+        var workflow = BuildWorkflow();
 
         var run = await workflow.CreateStreamingRun(message, State, CheckpointManager, CheckpointInfo);
 
@@ -77,7 +77,7 @@ public class ReActWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManage
         return new WorkflowResponse(WorkflowState.Completed, string.Empty);
     }
 
-    private async Task<Workflow<ChatMessage>> BuildWorkflow()
+    private Workflow BuildWorkflow()
     {
         var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
@@ -91,6 +91,6 @@ public class ReActWorkflow(IAgent reasonAgent, IAgent actAgent, CheckpointManage
         builder.AddEdge(requestPort, actNode);
         builder.AddEdge(actNode, reasonNode);
 
-        return await builder.BuildAsync<ChatMessage>();
+        return builder.Build();
     }
 }

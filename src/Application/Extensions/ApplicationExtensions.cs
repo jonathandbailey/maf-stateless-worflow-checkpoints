@@ -34,6 +34,7 @@ public static class ApplicationExtensions
 
         services.AddHostedService<AzureStorageSeedService>();
 
+
         services.AddAzureClients(azure =>
         {
             azure.AddBlobServiceClient(configuration.GetConnectionString("blobs"));

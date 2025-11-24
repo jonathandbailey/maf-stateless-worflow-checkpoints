@@ -11,7 +11,7 @@ namespace Application.Workflows;
 
 public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository artifactRepository) : IWorkflowFactory
 {
-    public async Task<Workflow<ChatMessage>> Create()
+    public async Task<Workflow> Create()
     {
         var reasonAgent = await agentFactory.CreateReasonAgent();
 
@@ -64,11 +64,11 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
         builder.AddEdge(hotelWorkerNode, artifactStorageNode);
         builder.AddEdge(trainWorkerNode, artifactStorageNode);
 
-        return await builder.BuildAsync<ChatMessage>();
+        return builder.Build();
     }
 }
 
 public interface IWorkflowFactory
 {
-    Task<Workflow<ChatMessage>> Create();
+    Task<Workflow> Create();
 }

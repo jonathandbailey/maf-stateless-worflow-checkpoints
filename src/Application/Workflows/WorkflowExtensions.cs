@@ -5,7 +5,7 @@ namespace Application.Workflows;
 
 public static class WorkflowExtensions
 {
-    public static async Task<Checkpointed<StreamingRun>> CreateStreamingRun<T>(this Workflow<T> workflow, T message, WorkflowState state, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo) where T : notnull
+    public static async Task<Checkpointed<StreamingRun>> CreateStreamingRun<T>(this Workflow workflow, T message, WorkflowState state, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo) where T : notnull
     {
         switch (state)
         {
@@ -18,13 +18,13 @@ public static class WorkflowExtensions
         }
     }
 
-    private static async Task<Checkpointed<StreamingRun>> StartStreamingRun<T>(Workflow<T> workflow, T message, CheckpointManager checkpointManager) where T : notnull
+    private static async Task<Checkpointed<StreamingRun>> StartStreamingRun<T>(Workflow workflow, T message, CheckpointManager checkpointManager) where T : notnull
     {
         return await InProcessExecution.StreamAsync(workflow, message, checkpointManager);
     }
 
-    private static async Task<Checkpointed<StreamingRun>> ResumeStreamingRun<T>(Workflow<T> workflow,
-        CheckpointInfo? checkpointInfo, CheckpointManager checkpointManager) where T : notnull
+    private static async Task<Checkpointed<StreamingRun>> ResumeStreamingRun(Workflow workflow,
+        CheckpointInfo? checkpointInfo, CheckpointManager checkpointManager)
     {
         if (checkpointInfo == null)
             throw new ArgumentNullException(nameof(checkpointInfo),"Are CheckpointInfo is required to resume the workflow.");

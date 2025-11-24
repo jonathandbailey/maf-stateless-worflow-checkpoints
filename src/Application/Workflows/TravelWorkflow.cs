@@ -6,7 +6,7 @@ using Microsoft.Extensions.AI;
 
 namespace Application.Workflows;
 
-public class TravelWorkflow(Workflow<ChatMessage> workflow, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
+public class TravelWorkflow(Workflow workflow, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo, WorkflowState state)
 {
     private CheckpointManager CheckpointManager { get; set; } = checkpointManager;
 
