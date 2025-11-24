@@ -21,6 +21,10 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
 
         var flightAgent = await agentFactory.CreateFlightWorkerAgent();
 
+        var hotelAgent = await agentFactory.CreateHotelWorkerAgent();
+
+        var trainAgent = await agentFactory.CreateTrainWorkerAgent();
+
         var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
         var reasonNode = new ReasonNode(reasonAgent);
@@ -28,8 +32,8 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
         var orchestrationNode = new OrchestrationNode(orchestrationAgent);
 
         var flightWorkerNode = new FlightWorkerNode(flightAgent);
-        var hotelWorkerNode = new HotelWorkerNode();
-        var trainWorkerNode = new TrainWorkerNode();
+        var hotelWorkerNode = new HotelWorkerNode(hotelAgent);
+        var trainWorkerNode = new TrainWorkerNode(trainAgent);
 
         var artifactStorageNode = new ArtifactStorageNode(artifactRepository);
 
@@ -57,6 +61,8 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
             condition: result => result?.Worker == "research_hotels");
 
         builder.AddEdge(flightWorkerNode, artifactStorageNode);
+        builder.AddEdge(hotelWorkerNode, artifactStorageNode);
+        builder.AddEdge(trainWorkerNode, artifactStorageNode);
 
         return await builder.BuildAsync<ChatMessage>();
     }

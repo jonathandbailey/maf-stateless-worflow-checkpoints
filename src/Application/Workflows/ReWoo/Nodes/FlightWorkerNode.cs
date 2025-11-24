@@ -1,6 +1,5 @@
 ﻿using Application.Agents;
 using Application.Observability;
-using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReWoo.Dto;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
@@ -14,7 +13,6 @@ public class FlightWorkerNode(IAgent agent) : ReflectingExecutor<FlightWorkerNod
 {
     private List<ChatMessage> _messages = [];
 
-
     public async ValueTask HandleAsync(OrchestratorWorkerTaskDto message, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
@@ -22,9 +20,9 @@ public class FlightWorkerNode(IAgent agent) : ReflectingExecutor<FlightWorkerNod
 
         activity?.SetTag("re-woo.node", "flight_worker_node");
 
-        var serialized = JsonSerializer.Serialize(message);
+        activity?.SetTag("re-woo.input.message", message);
 
-        activity?.SetTag("re-woo.input.message", serialized);
+        var serialized = JsonSerializer.Serialize(message);
 
         _messages.Add(new ChatMessage(ChatRole.User, serialized));
 
