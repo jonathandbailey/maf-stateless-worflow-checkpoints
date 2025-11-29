@@ -8,21 +8,21 @@ using System.Diagnostics;
 
 namespace Application.Workflows.ReAct.Nodes;
 
-public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNode") , IMessageHandler<ChatMessage, ActRequest>,
+public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNode") , IMessageHandler<TravelWorkflowRequestDto, ActRequest>,
     IMessageHandler<ActObservation, ActRequest>
 {
     private List<ChatMessage> _messages = [];
     
-    public async ValueTask<ActRequest> HandleAsync(ChatMessage message, IWorkflowContext context,
+    public async ValueTask<ActRequest> HandleAsync(TravelWorkflowRequestDto requestDto, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
         using var activity = Telemetry.Start("ReasonHandleRequest");
 
         activity?.SetTag("react.node", "reason_node");
 
-        activity?.SetTag("react.input.message", message.Text);
+        activity?.SetTag("react.input.message", requestDto.Message.Text);
 
-        return await Process(message, activity, cancellationToken);
+        return await Process(requestDto.Message, activity, cancellationToken);
     }
 
     public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,

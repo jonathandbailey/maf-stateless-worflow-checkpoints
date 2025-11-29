@@ -19,11 +19,16 @@ public class ApplicationService(IWorkflowFactory workflowFactory, IWorkflowRepos
 
         var travelWorkflow = new TravelWorkflow(workflow, checkpointManager, state.CheckpointInfo, state.State);
 
-        var response = await travelWorkflow.Execute(new ChatMessage(ChatRole.User, request.Message));
-  
+        var response = await travelWorkflow.Execute(
+            new TravelWorkflowRequestDto(
+                new ChatMessage(ChatRole.User, request.Message),
+                request.UserId,
+                request.SessionId
+            ));
+
         await workflowRepository.SaveAsync(request.SessionId, travelWorkflow.State, travelWorkflow.CheckpointInfo);
 
-        return new ConversationResponse(request.SessionId, response.Message);
+        return new ConversationResponse(request.SessionId, request.UserId, response.Message);
     }
 }
 

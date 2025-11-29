@@ -2,7 +2,6 @@
 using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReAct.Nodes;
 using Microsoft.Agents.AI.Workflows;
-using Microsoft.Extensions.AI;
 
 namespace Application.Workflows;
 
@@ -14,16 +13,16 @@ public class TravelWorkflow(Workflow workflow, CheckpointManager checkpointManag
 
     public WorkflowState State { get; private set; } = state;
 
-    public async Task<WorkflowResponse> Execute(ChatMessage message)
+    public async Task<WorkflowResponse> Execute(TravelWorkflowRequestDto requestDto)
     {
         using var activity = Telemetry.Start("WorkflowExecute");
 
         activity?.AddTag("workflow.state", State.ToString());
         activity?.AddTag("workflow.instance.id", CheckpointInfo?.CheckpointId);
         activity?.AddTag("workflow.has_checkpoint", (CheckpointInfo != null).ToString());
-        activity?.AddTag("workflow.user.message", message.Text);
+        activity?.AddTag("workflow.user.message", requestDto.Message.Text);
 
-        var run = await workflow.CreateStreamingRun(message, State, CheckpointManager, CheckpointInfo);
+        var run = await workflow.CreateStreamingRun(requestDto, State, CheckpointManager, CheckpointInfo);
 
         await foreach (var evt in run.Run.WatchStreamAsync())
         {
@@ -61,7 +60,7 @@ public class TravelWorkflow(Workflow workflow, CheckpointManager checkpointManag
                     }
                     case WorkflowState.WaitingForUserInput:
                     {
-                        var resp = requestInfoEvent.Request.CreateResponse(new UserResponse(message.Text));
+                        var resp = requestInfoEvent.Request.CreateResponse(new UserResponse(requestDto.Message.Text));
 
                         State = WorkflowState.Executing;
                         await run.Run.SendResponseAsync(resp);

@@ -10,7 +10,7 @@ using Microsoft.Agents.AI;
 
 namespace Application.Workflows.ReAct.Nodes;
 
-public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>("ActNode"), IMessageHandler<ActRequest>, 
+public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstants.ActNodeName), IMessageHandler<ActRequest>, 
     IMessageHandler<UserResponse>
 {
     private Activity? _activity;
