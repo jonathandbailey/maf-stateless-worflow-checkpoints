@@ -5,7 +5,6 @@ using Application.Workflows.ReAct.Nodes;
 using Application.Workflows.ReWoo.Dto;
 using Application.Workflows.ReWoo.Nodes;
 using Microsoft.Agents.AI.Workflows;
-using Microsoft.Extensions.AI;
 
 namespace Application.Workflows;
 
@@ -13,17 +12,17 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
 {
     public async Task<Workflow> Create()
     {
-        var reasonAgent = await agentFactory.Create(Agents.AgentTypes.Reason);
+        var reasonAgent = await agentFactory.Create(AgentTypes.Reason);
 
-        var actAgent = await agentFactory.Create(Agents.AgentTypes.Act);
+        var actAgent = await agentFactory.Create(AgentTypes.Act);
 
-        var orchestrationAgent = await agentFactory.Create(Agents.AgentTypes.Orchestration);
+        var orchestrationAgent = await agentFactory.Create(AgentTypes.Orchestration);
 
-        var flightAgent = await agentFactory.Create(Agents.AgentTypes.FlightWorker);
+        var flightAgent = await agentFactory.Create(AgentTypes.FlightWorker);
 
-        var hotelAgent = await agentFactory.Create(Agents.AgentTypes.HotelWorker);
+        var hotelAgent = await agentFactory.Create(AgentTypes.HotelWorker);
 
-        var trainAgent = await agentFactory.Create(Agents.AgentTypes.TrainWorker);
+        var trainAgent = await agentFactory.Create(AgentTypes.TrainWorker);
 
         var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 

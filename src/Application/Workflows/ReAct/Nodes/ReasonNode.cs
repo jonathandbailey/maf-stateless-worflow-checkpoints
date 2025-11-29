@@ -5,7 +5,6 @@ using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 using Microsoft.Extensions.AI;
 using System.Diagnostics;
-using System.Threading;
 
 namespace Application.Workflows.ReAct.Nodes;
 
@@ -22,7 +21,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
         activity?.SetTag("react.node", "reason_node");
 
         activity?.SetTag("react.input.message", message.Text);
-        
+
         return await Process(message, activity, cancellationToken);
     }
 
@@ -50,8 +49,11 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>("ReasonNo
 
         activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
 
-
         var responseMessage = response.Messages.First();
+
+        activity?.SetTag("llm.input_tokens", response.Usage?.InputTokenCount ?? 0);
+        activity?.SetTag("llm.output_tokens", response.Usage?.OutputTokenCount ?? 0);
+        activity?.SetTag("llm.total_tokens", response.Usage?.TotalTokenCount ?? 0);
 
         _messages.Add(responseMessage);
 

@@ -32,7 +32,7 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IOptions<
     private async Task<IAgent> Create(string templateName)
     {
         var template = await templateRepository.Load(templateName);
-    
+
         var chatClient = new AzureOpenAIClient(new Uri(settings.Value.EndPoint),
                 new DefaultAzureCredential())
             .GetChatClient(settings.Value.DeploymentName);
