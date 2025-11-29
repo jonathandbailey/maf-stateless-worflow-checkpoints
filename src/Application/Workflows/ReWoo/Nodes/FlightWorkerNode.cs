@@ -9,32 +9,44 @@ using System.Text.Json;
 
 namespace Application.Workflows.ReWoo.Nodes;
 
-public class FlightWorkerNode(IAgent agent) : ReflectingExecutor<FlightWorkerNode>("FlightWorkerNode"), IMessageHandler<OrchestratorWorkerTaskDto>
+public class FlightWorkerNode(IAgent agent) : 
+    ReflectingExecutor<FlightWorkerNode>(WorkflowConstants.FlightWorkerNodeName), 
+    IMessageHandler<OrchestratorWorkerTaskDto>
 {
+    private Activity? _activity;
+    
     public async ValueTask HandleAsync(OrchestratorWorkerTaskDto message, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        using var activity = Telemetry.Start("FlightWorkerHandleRequest");
-
-        activity?.SetTag("re-woo.node", "flight_worker_node");
-
-        activity?.SetTag("re-woo.input.message", message);
+        Trace(message);
 
         var serialized = JsonSerializer.Serialize(message);
-     
-        activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
-
+    
         var userId = await context.UserId();
         var sessionId = await context.SessionId();
 
         var response = await agent.RunAsync(new List<ChatMessage> { new(ChatRole.User, serialized) }, sessionId, userId, cancellationToken: cancellationToken);
-
-        activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
-
+    
         var responseMessage = response.Messages.First();
 
-        activity?.SetTag("re-woo.output.message", response.Messages.First().Text);
+        _activity?.SetTag("re-woo.output.message", response.Messages.First().Text);
 
         await context.SendMessageAsync(new ArtifactStorageDto(message.ArtifactKey, responseMessage.Text), cancellationToken: cancellationToken);
+
+        TraceEnd();
+    }
+
+    private void Trace(OrchestratorWorkerTaskDto message)
+    {
+        _activity = Telemetry.Start("FlightWorkerHandleRequest");
+
+        _activity?.SetTag("re-woo.node", "flight_worker_node");
+
+        _activity?.SetTag("re-woo.input.message", message);
+    }
+
+    private void TraceEnd()
+    {
+        _activity?.Dispose();
     }
 }

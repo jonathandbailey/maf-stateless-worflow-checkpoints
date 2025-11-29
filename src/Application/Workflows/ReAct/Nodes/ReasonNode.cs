@@ -43,15 +43,11 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
 
     private async Task<ActRequest> Process(ChatMessage message, CancellationToken cancellationToken, IWorkflowContext context)
     {
-        _activity?.AddEvent(new ActivityEvent("LLMRequestSent"));
-
         var userId = await context.ReadStateAsync<Guid>("UserId", scopeName: "Global", cancellationToken);
         var sessionId = await context.ReadStateAsync<Guid>("SessionId", scopeName: "Global", cancellationToken);
 
         var response = await agent.RunAsync(new List<ChatMessage> { message }, sessionId, userId, cancellationToken);
-
-        _activity?.AddEvent(new ActivityEvent("LLMResponseReceived"));
-
+   
         _activity?.SetTag("llm.input_tokens", response.Usage?.InputTokenCount ?? 0);
         _activity?.SetTag("llm.output_tokens", response.Usage?.OutputTokenCount ?? 0);
         _activity?.SetTag("llm.total_tokens", response.Usage?.TotalTokenCount ?? 0);

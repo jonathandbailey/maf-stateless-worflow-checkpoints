@@ -10,6 +10,8 @@ public static class WorkflowConstants
 
     public const string TrainWorkerNodeName = "TrainWorkerNode";
 
+    public const string FlightWorkerNodeName = "FlightWorkerNode";  
+
     public const string ArtifactStorageNodeName = "ArtifactStorageNode";
 
     public const string UserId = "UserId";
