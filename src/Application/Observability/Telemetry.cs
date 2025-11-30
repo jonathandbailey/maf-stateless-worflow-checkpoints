@@ -4,7 +4,7 @@ namespace Application.Observability;
 
 public static class Telemetry
 {
-    private static readonly ActivitySource Source = new ActivitySource("Application.Workflows.ReAct", "1.0.0");
+    private static readonly ActivitySource Source = new ActivitySource("Application.Workflows", "1.0.0");
 
     public static Activity? Start(string name)
     {

@@ -13,8 +13,9 @@ namespace Application.Workflows.ReAct.Nodes;
 public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstants.ActNodeName), IMessageHandler<ActRequest>, 
     IMessageHandler<UserResponse>
 {
-    private const string NoJsonReturnedByAgent = "Agent/LLM did not return formnatted JSON for routing/actions.";
-    
+    private const string NoJsonReturnedByAgent = "Agent/LLM did not return formnatted JSON for routing/actions";
+    private const string AgentJsonParseFailed = "Agent JSON parse failed";
+
     private Activity? _activity;
  
     public async ValueTask HandleAsync(ActRequest request, IWorkflowContext context,
@@ -35,12 +36,23 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
             return;
         }
         
-        var routeAction = JsonOutputParser.Parse<RouteAction>(response.Text);
+        RouteAction routeAction;
+        try
+        {
+            routeAction = JsonOutputParser.Parse<RouteAction>(response.Text);
+        }
+        catch (Exception ex)
+        {
+            await context.AddEventAsync(
+                new TravelWorkflowErrorEvent(AgentJsonParseFailed, response.Text, WorkflowConstants.ActNodeName),
+                cancellationToken);
+            return;
+        }
 
         var cleanedResponse = JsonOutputParser.Remove(response.Text);
 
-        _activity?.SetTag("react.route.message", cleanedResponse);
-        _activity?.SetTag("react.route", routeAction.Route);
+        _activity?.SetTag("workflow.route.message", cleanedResponse);
+        _activity?.SetTag("workflow.route", routeAction.Route);
 
         switch (routeAction.Route)
         {
@@ -57,33 +69,38 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
                 await context.SendMessageAsync(new OrchestrationRequest(extractedJson), cancellationToken: cancellationToken);
                 break;
             }
+            default:
+                await context.AddEventAsync(
+                    new TravelWorkflowErrorEvent($"Unknown route '{routeAction.Route}' returned by agent", cleanedResponse, WorkflowConstants.ActNodeName),
+                    cancellationToken);
+                break;
         }
 
         TraceEnd();
     }
 
     public async ValueTask HandleAsync(UserResponse userResponse, IWorkflowContext context,
-        CancellationToken cancellationToken = new CancellationToken())
+        CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Start("ActHandleUserResponse");
+        using var activity = Telemetry.Start($"{WorkflowConstants.ActNodeName}.handleUserResponse");
 
-        activity?.SetTag("react.user.response_message", userResponse.Message);
+        WorkflowTelemetryTags.SetPreview(activity, userResponse.Message);
 
         await context.SendMessageAsync(new ActObservation(userResponse.Message), cancellationToken: cancellationToken);
     }
 
     private void TraceActRequest(ActRequest request)
     {
-        _activity = Telemetry.Start("ActHandleRequest");
+        _activity = Telemetry.Start($"{WorkflowConstants.ActNodeName}.handleRequest");
 
-        _activity?.SetTag("react.node", "act_node");
+        _activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ActNodeName);
 
-        _activity?.SetTag("react.input.message", request.Message.Text);
+        WorkflowTelemetryTags.SetPreview(_activity, request.Message.Text);
     }
 
     private void TraceAgentRequestSent(AgentRunResponse response)
     {
-        _activity?.SetTag("react.output.message", response.Messages.First().Text);
+        WorkflowTelemetryTags.SetPreview(_activity, response.Text);
     }
 
     private void TraceEnd()

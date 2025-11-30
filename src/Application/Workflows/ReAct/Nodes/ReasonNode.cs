@@ -31,11 +31,11 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
     public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
-        using var activity = Telemetry.Start("ReasonHandleObserve");
+        using var activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.observe");
 
-        activity?.SetTag("react.node", "reason_node");
+        activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
 
-        activity?.SetTag("react.observation.response_message", actObservation.Message);
+        WorkflowTelemetryTags.SetPreview(activity, actObservation.Message);
 
         var message = new ChatMessage(ChatRole.User, actObservation.Message);
 
@@ -49,18 +49,18 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
 
         var response = await agent.RunAsync(message, sessionId, userId, cancellationToken);
   
-        _activity?.SetTag("react.output.message", response.Messages.First().Text);
+        WorkflowTelemetryTags.SetPreview(_activity, response.Messages.First().Text);
 
         return new ActRequest(response.Messages.First());
     }
 
     private void Trace(TravelWorkflowRequestDto requestDto)
     {
-        _activity = Telemetry.Start("ReasonHandleRequest");
+        _activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.handleRequest");
 
-        _activity?.SetTag("react.node", "reason_node");
+        _activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
 
-        _activity?.SetTag("react.input.message", requestDto.Message.Text);
+        WorkflowTelemetryTags.SetPreview(_activity, requestDto.Message.Text);
     }
 
     private void TraceEnd()

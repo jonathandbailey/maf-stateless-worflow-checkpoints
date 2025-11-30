@@ -34,7 +34,9 @@ public class FlightWorkerNode(IAgent agent) :
     
             var responseMessage = response.Messages.First();
 
-            _activity?.SetTag("re-woo.output.message", response.Messages.First().Text);
+            WorkflowTelemetryTags.SetPreview(_activity, responseMessage.Text);
+
+            _activity?.SetTag(WorkflowTelemetryTags.ArtifactKey, message.ArtifactKey);
 
             await context.SendMessageAsync(new ArtifactStorageDto(message.ArtifactKey, responseMessage.Text), cancellationToken: cancellationToken);
         }
@@ -48,11 +50,11 @@ public class FlightWorkerNode(IAgent agent) :
 
     private void Trace(OrchestratorWorkerTaskDto message)
     {
-        _activity = Telemetry.Start("FlightWorkerHandleRequest");
+        _activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}.handleRequest");
 
-        _activity?.SetTag("re-woo.node", "flight_worker_node");
+        _activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.FlightWorkerNodeName);
 
-        _activity?.SetTag("re-woo.input.message", message);
+        WorkflowTelemetryTags.SetPreview(_activity, JsonSerializer.Serialize(message));
     }
 
     private void TraceEnd()

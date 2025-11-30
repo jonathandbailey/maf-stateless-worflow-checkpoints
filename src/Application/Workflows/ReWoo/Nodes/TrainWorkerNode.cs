@@ -16,9 +16,9 @@ public class TrainWorkerNode(IAgent agent) : ReflectingExecutor<TrainWorkerNode>
     {
         using var activity = Telemetry.Start("TrainWorkerHandleRequest");
 
-        activity?.SetTag("re-woo.node", "train_worker_node");
+        activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.TrainWorkerNodeName);
 
-        activity?.SetTag("re-woo.input.message", message);
+        WorkflowTelemetryTags.SetPreview(activity, JsonSerializer.Serialize(message));
 
         var serialized = JsonSerializer.Serialize(message);
     
@@ -33,7 +33,9 @@ public class TrainWorkerNode(IAgent agent) : ReflectingExecutor<TrainWorkerNode>
 
         var responseMessage = response.Messages.First();
 
-        activity?.SetTag("re-woo.output.message", response.Messages.First().Text);
+        WorkflowTelemetryTags.SetPreview(activity, responseMessage.Text);
+
+        activity?.SetTag(WorkflowTelemetryTags.ArtifactKey, message.ArtifactKey);
 
         await context.SendMessageAsync(new ArtifactStorageDto(message.ArtifactKey, responseMessage.Text), cancellationToken: cancellationToken);
     }

@@ -62,7 +62,7 @@ public static class Extensions
             .WithMetrics(metrics =>
             {
                 // Ensure the meter name matches the Meter created in Application.Observability.Telemetry
-                metrics.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Environment.ApplicationName)).AddMeter("Application.Workflows.ReAct");
+                metrics.SetResourceBuilder(ResourceBuilder.CreateDefault().AddService(builder.Environment.ApplicationName)).AddMeter("Application.Workflows");
                 
                /* metrics.AddAspNetCoreInstrumentation()
                     .AddHttpClientInstrumentation()
@@ -71,7 +71,7 @@ public static class Extensions
             .WithTracing(tracing =>
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
-                    .AddSource("Application.Workflows.ReAct"); // Add your custom ActivitySource (match Telemetry ActivitySource)
+                    .AddSource("Application.Workflows"); // Add your custom ActivitySource (match Telemetry ActivitySource)
                 /*   .AddAspNetCoreInstrumentation(tracing =>
                        // Exclude health check requests from tracing
                        tracing.Filter = new Func<HttpContext, bool>(context =>
