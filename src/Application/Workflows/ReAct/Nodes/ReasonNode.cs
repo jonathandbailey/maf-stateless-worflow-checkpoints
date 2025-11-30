@@ -12,59 +12,52 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
     IMessageHandler<TravelWorkflowRequestDto, ActRequest>,
     IMessageHandler<ActObservation, ActRequest>
 {
-    private Activity? _activity;
-    public async ValueTask<ActRequest> HandleAsync(TravelWorkflowRequestDto requestDto, IWorkflowContext context,
+    public async ValueTask<ActRequest> HandleAsync(
+        TravelWorkflowRequestDto requestDto, 
+        IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        Trace(requestDto);
+        using var activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.handleRequest");
+
+        Annotate(activity, requestDto.Message.Text);
 
         await context.SessionId(requestDto.SessionId);
         await context.UserId(requestDto.UserId);
 
-        var response = await Process(requestDto.Message, context, cancellationToken);
-
-        TraceEnd();
-
-        return response;
+        return await RunReasoningAsync(requestDto.Message, context, activity, cancellationToken);
     }
 
-    public async ValueTask<ActRequest> HandleAsync(ActObservation actObservation, IWorkflowContext context,
-        CancellationToken cancellationToken = new CancellationToken())
+    public async ValueTask<ActRequest> HandleAsync(
+        ActObservation actObservation, 
+        IWorkflowContext context,
+        CancellationToken cancellationToken = default)
     {
         using var activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.observe");
 
-        activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
-
-        WorkflowTelemetryTags.SetPreview(activity, actObservation.Message);
-
+        Annotate(activity, actObservation.Message);
+  
         var message = new ChatMessage(ChatRole.User, actObservation.Message);
 
-        return await Process(message, context, cancellationToken);
+        return await RunReasoningAsync(message, context, activity, cancellationToken);
     }
 
-    private async Task<ActRequest> Process(ChatMessage message, IWorkflowContext context, CancellationToken cancellationToken)
+    private async Task<ActRequest> RunReasoningAsync(ChatMessage message, IWorkflowContext context, Activity? activity, CancellationToken cancellationToken)
     {
         var userId = await context.UserId();
         var sessionId = await context.SessionId();
 
         var response = await agent.RunAsync(message, sessionId, userId, cancellationToken);
-  
-        WorkflowTelemetryTags.SetPreview(_activity, response.Messages.First().Text);
+
+        Annotate(activity, response.Text);
 
         return new ActRequest(response.Messages.First());
     }
 
-    private void Trace(TravelWorkflowRequestDto requestDto)
+    private static void Annotate(Activity? activity, string preview)
     {
-        _activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.handleRequest");
+        if (activity == null) return;
 
-        _activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
-
-        WorkflowTelemetryTags.SetPreview(_activity, requestDto.Message.Text);
-    }
-
-    private void TraceEnd()
-    {
-        _activity?.Dispose();
+        activity.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
+        WorkflowTelemetryTags.SetPreview(activity, preview);
     }
 }

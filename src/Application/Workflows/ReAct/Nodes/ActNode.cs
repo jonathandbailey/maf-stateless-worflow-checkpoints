@@ -44,7 +44,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
         catch (Exception ex)
         {
             await context.AddEventAsync(
-                new TravelWorkflowErrorEvent(AgentJsonParseFailed, response.Text, WorkflowConstants.ActNodeName),
+                new TravelWorkflowErrorEvent(AgentJsonParseFailed, response.Text, WorkflowConstants.ActNodeName, ex),
                 cancellationToken);
             return;
         }
