@@ -12,6 +12,7 @@ import styles from './RootLayout.module.css';
 import { UIFactory } from '../../factories/UIFactory';
 import type { Status } from "../../types/ui/Status";
 import type { ArtifactStatusDto } from "../../types/dto/artifact-status.dto";
+import FlightList from "../travel/flights/FlightList";
 
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
@@ -52,7 +53,61 @@ const RootLayout = () => {
         const handleArtifact = (response: ArtifactStatusDto) => {
             console.log("Artifact status received:", response);
 
-            // Create a new tab for the artifact
+            if (response.key === 'flights') {
+                const conversationService = new ConversationService();
+                conversationService.getFlightPlan(sessionId).then(flightPlan => {
+                    console.log("Flight plan downloaded:", flightPlan);
+
+                    const newTab = {
+                        key: response.key,
+                        label: response.key,
+                        children: (
+                            <div style={{ padding: '16px' }}>
+                                <FlightList flights={flightPlan.results} />
+                            </div>
+                        ),
+                    };
+
+                    setTabs(prev => {
+                        const existingTab = prev?.find(tab => tab.key === response.key);
+                        if (existingTab) {
+                            // Update existing tab with flight plan content
+                            const updatedTabs = prev?.map(tab =>
+                                tab.key === response.key ? newTab : tab
+                            ) || [];
+                            setActiveKey(response.key);
+                            return updatedTabs;
+                        }
+                        const newTabs = prev ? [...prev, newTab] : [newTab];
+                        setActiveKey(response.key);
+                        return newTabs;
+                    });
+                }).catch(error => {
+                    console.error("Error downloading flight plan:", error);
+
+                    const errorTab = {
+                        key: response.key,
+                        label: response.key,
+                        children: <div style={{ padding: '16px', color: 'red' }}>Error loading flight plan: {error.message}</div>,
+                    };
+
+                    setTabs(prev => {
+                        const existingTab = prev?.find(tab => tab.key === response.key);
+                        if (existingTab) {
+                            const updatedTabs = prev?.map(tab =>
+                                tab.key === response.key ? errorTab : tab
+                            ) || [];
+                            setActiveKey(response.key);
+                            return updatedTabs;
+                        }
+                        const newTabs = prev ? [...prev, errorTab] : [errorTab];
+                        setActiveKey(response.key);
+                        return newTabs;
+                    });
+                });
+                return; // Early return to avoid creating default tab
+            }
+
             const newTab = {
                 key: response.key,
                 label: response.key,
@@ -60,14 +115,12 @@ const RootLayout = () => {
             };
 
             setTabs(prev => {
-                // Check if tab already exists
+
                 const existingTab = prev?.find(tab => tab.key === response.key);
                 if (existingTab) {
-                    // Tab already exists, just activate it
                     setActiveKey(response.key);
                     return prev;
                 }
-                // Add new tab
                 const newTabs = prev ? [...prev, newTab] : [newTab];
                 setActiveKey(response.key);
                 return newTabs;
@@ -96,11 +149,10 @@ const RootLayout = () => {
             newExchange.user.id,
             sessionId,
             newExchange.assistant.id
-        ).then(response => {
-
+        ).then(() => {
+            // Conversation exchange initiated successfully
         }).catch(error => {
             console.error("Error during conversation exchange:", error);
-
         });
     }
 
