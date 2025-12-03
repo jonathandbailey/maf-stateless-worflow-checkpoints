@@ -13,7 +13,7 @@ public sealed class TravelWorkflowErrorEvent(string description, string message,
 
 public sealed class ArtifactStatusEvent(string key, ArtifactStatus status) : WorkflowEvent
 {
-    private string Key { get; } = key;
+    public string Key { get; } = key;
 
     private ArtifactStatus Status { get; } = status;
 

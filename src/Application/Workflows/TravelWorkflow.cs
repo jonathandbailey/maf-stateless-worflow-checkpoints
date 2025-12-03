@@ -55,6 +55,8 @@ public class TravelWorkflow(
             if (evt is ArtifactStatusEvent artifactStatusEvent)
             {
                 _artifactStatusEvents.Add(artifactStatusEvent);
+
+                await userStreamingService.Artifact(requestDto.UserId, artifactStatusEvent.Key);
             }
 
             if (evt is ReasonActWorkflowCompleteEvent reasonActWorkflowCompleteEvent)

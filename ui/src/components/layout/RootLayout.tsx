@@ -10,6 +10,7 @@ import AssistantMessage from "../chat/AssistantMessage";
 import styles from './RootLayout.module.css';
 import { UIFactory } from '../../factories/UIFactory';
 import type { Status } from "../../types/ui/Status";
+import type { ArtifactStatusDto } from "../../types/dto/artifact-status.dto";
 
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
@@ -45,12 +46,19 @@ const RootLayout = () => {
             ]);
         };
 
+        const handleArtifact = (response: ArtifactStatusDto) => {
+            console.log("Artifact status received:", response);
+
+        };
+
         streamingService.on("user", handleUserResponse);
         streamingService.on("status", handleStatusUpdate);
+        streamingService.on("artifact", handleArtifact);
 
         return () => {
             streamingService.off("user", handleUserResponse);
             streamingService.off("status", handleStatusUpdate);
+            streamingService.off("artifact", handleArtifact);
         };
     }, []);
 

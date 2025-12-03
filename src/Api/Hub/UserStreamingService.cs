@@ -36,5 +36,15 @@ public class UserStreamingService(IHubContext<UserHub> hub, IUserConnectionManag
             await hub.Clients.Client(connectionId).SendAsync("status", new UserResponseDto() { Message = content });
         }
     }
+
+    public async Task Artifact(Guid userId, string key)
+    {
+        var connections = userConnectionManager.GetConnections(userId);
+
+        foreach (var connectionId in connections)
+        {
+            await hub.Clients.Client(connectionId).SendAsync("artifact", new ArtifactStatusDto(key));
+        }
+    }
 }
 
