@@ -1,5 +1,5 @@
 import ChatInput from "../chat/ChatInput"
-import { Flex } from "antd"
+import { Flex, Timeline } from "antd"
 import { useState, useEffect } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
 import { ConversationService } from "../../services/conversation.service";
@@ -9,10 +9,12 @@ import UserMessage from "../chat/UserMessage";
 import AssistantMessage from "../chat/AssistantMessage";
 import styles from './RootLayout.module.css';
 import { UIFactory } from '../../factories/UIFactory';
+import type { Status } from "../../types/ui/Status";
 
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
     const [exchanges, setExchanges] = useState<UIExchange[]>([]);
+    const [statusItems, setStatusItems] = useState<Status[]>([]);
 
     useEffect(() => {
         const handleUserResponse = (response: ChatResponseDto) => {
@@ -34,11 +36,21 @@ const RootLayout = () => {
             }));
         };
 
-        // Register the event handler (service will handle it when connection is ready)
+        const handleStatusUpdate = (response: ChatResponseDto) => {
+            if (!response) return;
+
+            setStatusItems(prev => [
+                ...prev,
+                { message: response.message || '' }
+            ]);
+        };
+
         streamingService.on("user", handleUserResponse);
+        streamingService.on("status", handleStatusUpdate);
 
         return () => {
             streamingService.off("user", handleUserResponse);
+            streamingService.off("status", handleStatusUpdate);
         };
     }, []);
 
@@ -62,24 +74,39 @@ const RootLayout = () => {
     }
 
     return <>
-        <div className={styles.container}>
-            <Flex vertical className={styles.layout}>
-                <div className={styles.content}>
-                    {exchanges.map((exchange, idx) => (
-                        <div key={idx}>
-                            <Flex justify="flex-end" className={styles.userMessageContainer}>
-                                <UserMessage message={exchange.user} />
-                            </Flex>
-                            <AssistantMessage message={exchange.assistant} />
-                        </div>
-                    ))}
-                </div>
 
-                <div className={styles.chatInputContainer}>
-                    <ChatInput onEnter={handlePrompt} />
-                </div>
-            </Flex>
-        </div>
+        <Flex gap="large" >
+
+            <div className={styles.container}>
+                <Flex vertical className={styles.layout}>
+                    <div className={styles.content}>
+                        {exchanges.map((exchange, idx) => (
+                            <div key={idx}>
+                                <Flex justify="flex-end" className={styles.userMessageContainer}>
+                                    <UserMessage message={exchange.user} />
+                                </Flex>
+                                <AssistantMessage message={exchange.assistant} />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className={styles.chatInputContainer}>
+                        <ChatInput onEnter={handlePrompt} />
+                    </div>
+                </Flex>
+            </div>
+            <div className={styles.statusContainer}>
+                <Timeline>
+                    {statusItems.map((status, idx) => (
+                        <Timeline.Item key={idx}>{status.message}</Timeline.Item>
+                    ))}
+
+                </Timeline>
+            </div>
+
+        </Flex>
+
+
 
 
     </>

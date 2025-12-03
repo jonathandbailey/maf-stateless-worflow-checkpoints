@@ -26,3 +26,8 @@
     background: #fff;
     z-index: 10;
 }
+.statusContainer {
+    
+    padding: 20px 0;
+    margin-left: 24;
+}
