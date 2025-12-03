@@ -6,7 +6,7 @@
 
         public string Message { get; set; } = string.Empty;
 
-        public string TaskId { get; set; } = string.Empty;
+        public Guid Id { get; set; }
 
         public bool HasError { get; set; } = false;
 

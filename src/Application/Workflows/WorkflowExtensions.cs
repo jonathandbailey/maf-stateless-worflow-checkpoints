@@ -6,24 +6,28 @@ namespace Application.Workflows;
 public static class WorkflowExtensions
 {
 
-    public static async Task<Guid> UserId(this IWorkflowContext context)
+    public static async Task<SessionState> SessionState(this IWorkflowContext context)
     {
-       return await context.ReadStateAsync<Guid>(WorkflowConstants.UserId, scopeName: WorkflowConstants.ScopeGlobal);
+       return await context.ReadStateAsync<SessionState>(WorkflowConstants.SessionState, scopeName: WorkflowConstants.ScopeGlobal);
     }
 
-    public static async Task UserId(this IWorkflowContext context, Guid userId)
+    public static async Task SessionState(this IWorkflowContext context, SessionState state)
     {
-        await context.QueueStateUpdateAsync(WorkflowConstants.UserId, userId, scopeName: WorkflowConstants.ScopeGlobal);
+        await context.QueueStateUpdateAsync(WorkflowConstants.SessionState, state, scopeName: WorkflowConstants.ScopeGlobal);
     }
 
-    public static async Task<Guid> SessionId(this IWorkflowContext context)
+    public static async Task RequestId(this IWorkflowContext context, Guid requestId)
     {
-        return await context.ReadStateAsync<Guid>(WorkflowConstants.SessionId, scopeName: WorkflowConstants.ScopeGlobal);
+        var sessionState = await context.SessionState();
+
+        sessionState = sessionState with { RequestId = requestId };
+
+        await context.SessionState(sessionState);
     }
 
-    public static async Task SessionId(this IWorkflowContext context, Guid sessionId)
+    public static async Task ExchangeId(this IWorkflowContext context, Guid exchangeId)
     {
-        await context.QueueStateUpdateAsync(WorkflowConstants.SessionId, sessionId, scopeName: WorkflowConstants.ScopeGlobal);
+        await context.QueueStateUpdateAsync(WorkflowConstants.ExchangeId, exchangeId, scopeName: WorkflowConstants.ScopeGlobal);
     }
 
     public static async Task<Checkpointed<StreamingRun>> CreateStreamingRun<T>(this Workflow workflow, T message, WorkflowState state, CheckpointManager checkpointManager, CheckpointInfo? checkpointInfo) where T : notnull

@@ -20,6 +20,10 @@ public static class WorkflowConstants
 
     public const string SessionId = "SessionId";
 
+    public const string SessionState = "SessionState";
+
+    public const string ExchangeId = "ExchangeId";
+
     public const string ScopeGlobal = "Global";
     public const string UserNode = "UserNode";
 }

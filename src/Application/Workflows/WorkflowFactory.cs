@@ -27,7 +27,7 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
 
         var userAgent = await agentFactory.Create(AgentTypes.User);
 
-        var requestPort = RequestPort.Create<UserRequest, ActObservation>("user-input");
+        var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
         var reasonNode = new ReasonNode(reasonAgent);
         var actNode = new ActNode(actAgent);
@@ -46,7 +46,8 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
         builder.AddEdge(reasonNode, actNode);
         builder.AddEdge(actNode, userNode);
         builder.AddEdge(userNode, requestPort);
-        builder.AddEdge(requestPort, reasonNode);
+        builder.AddEdge(requestPort, userNode);
+        builder.AddEdge(userNode, reasonNode);
         builder.AddEdge(actNode, reasonNode);
         builder.AddEdge(actNode, orchestrationNode);
 

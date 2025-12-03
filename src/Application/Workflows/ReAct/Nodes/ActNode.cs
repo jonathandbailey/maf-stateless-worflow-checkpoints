@@ -23,10 +23,9 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
 
         WorkflowTelemetryTags.SetInputPreview(activity, request.Message.Text);
 
-        var userId = await context.UserId();
-        var sessionId = await context.SessionId();
-   
-        var update = await agent.RunAsync(request.Message, sessionId, userId, cancellationToken: cancellationToken);
+        var sessionState = await context.SessionState();
+
+        var update = await agent.RunAsync(request.Message, sessionState.SessionId, sessionState.UserId, cancellationToken: cancellationToken);
 
         var response = update.Text;
 

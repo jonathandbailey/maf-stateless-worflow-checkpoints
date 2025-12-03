@@ -7,13 +7,13 @@ namespace Api.Hub;
 
 public class UserStreamingService(IHubContext<UserHub> hub, IUserConnectionManager userConnectionManager, IOptions<HubSettings> hubSettings) : IUserStreamingService
 {
-    public async Task Stream(Guid userId, string content, bool isEndOfStream)
+    public async Task Stream(Guid userId, string content, bool isEndOfStream, Guid exchangeId)
     {
         var connections = userConnectionManager.GetConnections(userId);
 
         foreach (var connectionId in connections)
         {
-            await hub.Clients.Client(connectionId).SendAsync(hubSettings.Value.PromptChannel, new UserResponseDto() { Message = content, IsEndOfStream = isEndOfStream });
+            await hub.Clients.Client(connectionId).SendAsync(hubSettings.Value.PromptChannel, new UserResponseDto() { Message = content, IsEndOfStream = isEndOfStream, Id = exchangeId});
         }
     }
 

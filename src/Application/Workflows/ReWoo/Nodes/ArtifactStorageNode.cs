@@ -24,10 +24,9 @@ public class ArtifactStorageNode(IArtifactRepository artifactRepository) :
 
         try
         {
-            var userId = await context.UserId();
-            var sessionId = await context.SessionId();
+            var sessionState = await context.SessionState();
 
-            await artifactRepository.SaveAsync(sessionId, userId, message.Content, message.Key);
+            await artifactRepository.SaveAsync(sessionState.SessionId, sessionState.UserId, message.Content, message.Key);
 
             await context.AddEventAsync(new ArtifactStatusEvent(message.Key, ArtifactStatus.Created), cancellationToken);
         }

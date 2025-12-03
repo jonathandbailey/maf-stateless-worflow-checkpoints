@@ -10,6 +10,8 @@ builder.AddServiceDefaults();
 
 builder.Services.Configure<HubSettings>(options => builder.Configuration.GetSection("HubSettings").Bind(options));
 
+builder.AddCorsPolicyFromServiceDiscovery();
+
 builder.Services.AddApiServices();
 
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -38,6 +40,8 @@ else
 }
 
 app.MapHub<UserHub>("hub");
+
+app.UseCorsPolicyServiceDiscovery();
 
 
 

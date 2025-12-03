@@ -22,8 +22,8 @@ public static class ApiMappings
 
     private static async Task<Ok<ConversationResponseDto>> ConversationExchange([FromBody] ConversationRequestDto requestDto, IApplicationService service, HttpContext context)
     {
-        var response = await service.Execute(new ConversationRequest(requestDto.SessionId, context.User.Id(), requestDto.Message));
+        var response = await service.Execute(new ConversationRequest(requestDto.SessionId, context.User.Id(), requestDto.Message, requestDto.ExchangeId));
         
-        return TypedResults.Ok(new ConversationResponseDto(response.Message, response.SessionId));
+        return TypedResults.Ok(new ConversationResponseDto(response.Message, response.SessionId, response.ExchangeId));
     }
 }

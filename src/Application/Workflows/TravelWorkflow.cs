@@ -70,7 +70,7 @@ public class TravelWorkflow(
 
             if (evt is ConversationStreamingEvent streamingEvent)
             {
-                await userStreamingService.Stream(Guid.Parse("B4C361C4-460C-4B1D-8DC7-34D5F3595AD1"), streamingEvent.Content, streamingEvent.EndOfStream);
+                await userStreamingService.Stream(Guid.Parse("B4C361C4-460C-4B1D-8DC7-34D5F3595AD1"), streamingEvent.Content, streamingEvent.EndOfStream, streamingEvent.ExchangeId);
             }
 
             if (evt is WorkflowStatusEvent statusEvent)
@@ -92,7 +92,7 @@ public class TravelWorkflow(
                     }
                     case WorkflowState.WaitingForUserInput:
                     {
-                        var resp = requestInfoEvent.Request.CreateResponse(new ActObservation(requestDto.Message.Text));
+                        var resp = requestInfoEvent.Request.CreateResponse(new UserResponse(requestDto.Message.Text, requestDto.RequestId));
 
                         State = WorkflowState.Executing;
                         await run.Run.SendResponseAsync(resp);

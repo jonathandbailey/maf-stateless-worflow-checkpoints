@@ -1,8 +1,8 @@
-﻿using Application.Agents.Repository;
+﻿using System.ClientModel;
+using Application.Agents.Repository;
 using Application.Infrastructure;
 using Application.Settings;
 using Azure.AI.OpenAI;
-using Azure.Identity;
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
@@ -48,7 +48,7 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentThr
         var template = await templateRepository.Load(templateName);
 
         var chatClient = new AzureOpenAIClient(new Uri(settings.Value.EndPoint),
-                new DefaultAzureCredential())
+                new ApiKeyCredential(settings.Value.ApiKey))
             .GetChatClient(settings.Value.DeploymentName);
 
         var reasonAgent = chatClient.CreateAIAgent(new ChatClientAgentOptions

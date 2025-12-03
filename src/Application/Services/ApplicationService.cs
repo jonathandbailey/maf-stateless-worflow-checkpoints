@@ -30,12 +30,13 @@ public class ApplicationService(
             new TravelWorkflowRequestDto(
                 new ChatMessage(ChatRole.User, request.Message),
                 request.UserId,
-                request.SessionId
+                request.SessionId,
+                request.ExchangeId
             ));
 
         await workflowRepository.SaveAsync(request.UserId, request.SessionId, travelWorkflow.State, travelWorkflow.CheckpointInfo);
 
-        return new ConversationResponse(request.SessionId, request.UserId, response.Message);
+        return new ConversationResponse(request.SessionId, request.UserId, response.Message, request.ExchangeId);
     }
 }
 
