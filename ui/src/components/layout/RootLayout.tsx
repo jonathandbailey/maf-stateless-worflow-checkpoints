@@ -1,5 +1,6 @@
 import ChatInput from "../chat/ChatInput"
-import { Flex, Timeline } from "antd"
+import { Flex, Tabs, Timeline } from "antd"
+import type { TabsProps } from "antd";
 import { useState, useEffect } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
 import { ConversationService } from "../../services/conversation.service";
@@ -16,6 +17,8 @@ const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
     const [exchanges, setExchanges] = useState<UIExchange[]>([]);
     const [statusItems, setStatusItems] = useState<Status[]>([]);
+    const [tabs, setTabs] = useState<TabsProps['items']>([]);
+    const [activeKey, setActiveKey] = useState<string>();
 
     useEffect(() => {
         const handleUserResponse = (response: ChatResponseDto) => {
@@ -49,6 +52,26 @@ const RootLayout = () => {
         const handleArtifact = (response: ArtifactStatusDto) => {
             console.log("Artifact status received:", response);
 
+            // Create a new tab for the artifact
+            const newTab = {
+                key: response.key,
+                label: response.key,
+                children: <div>Artifact: {response.key}</div>,
+            };
+
+            setTabs(prev => {
+                // Check if tab already exists
+                const existingTab = prev?.find(tab => tab.key === response.key);
+                if (existingTab) {
+                    // Tab already exists, just activate it
+                    setActiveKey(response.key);
+                    return prev;
+                }
+                // Add new tab
+                const newTabs = prev ? [...prev, newTab] : [newTab];
+                setActiveKey(response.key);
+                return newTabs;
+            });
         };
 
         streamingService.on("user", handleUserResponse);
@@ -85,6 +108,16 @@ const RootLayout = () => {
 
         <Flex gap="large" >
 
+            <div>
+                <Tabs
+                    items={tabs}
+                    activeKey={activeKey}
+                    onChange={setActiveKey}
+                    tabPlacement="start"
+
+
+                />
+            </div>
             <div className={styles.container}>
                 <Flex vertical className={styles.layout}>
                     <div className={styles.content}>
