@@ -16,7 +16,7 @@ const AssistantMessage = ({ message }: AssistantMessageProps) => {
         >
             {message.hasError ? (
                 <Alert
-                    message={message.errorMessage}
+                    title={message.errorMessage}
                     description="There was an error processing your request. Please try again."
                     type="error"
                     showIcon

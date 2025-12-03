@@ -1,0 +1,28 @@
+.container {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    height: 100vh;
+}
+
+.layout {
+    height: 100%;
+}
+
+.content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 0;
+}
+
+.userMessageContainer {
+    width: 100%;
+}
+
+.chatInputContainer {
+    width: 700px;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    z-index: 10;
+}
