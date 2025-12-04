@@ -24,11 +24,17 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
 
         await context.AddEventAsync(new WorkflowStatusEvent(StatusThinking), cancellationToken);
 
-        Annotate(activity, requestDto.Message.Text);
-
         var chatMessage = await Create(requestDto.Message.Text, context);
-   
-        return await RunReasoningAsync(chatMessage, context, activity, cancellationToken);
+
+        activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ReasonNodeName);
+
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.InputNodePreview, chatMessage.Text);
+
+        var actRequest = await RunReasoningAsync(chatMessage, context, activity, cancellationToken);
+
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.OutputNodePreview, actRequest.Message.Text);
+
+        return actRequest;
     }
 
     public async ValueTask<ActRequest> HandleAsync(
@@ -39,12 +45,16 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
         using var activity = Telemetry.Start($"{WorkflowConstants.ReasonNodeName}.observe");
 
         await context.AddEventAsync(new WorkflowStatusEvent(StatusThinking), cancellationToken);
-
-        Annotate(activity, actObservation.Message);
-
+ 
         var message = await Create(actObservation.Message, context);
 
-        return await RunReasoningAsync(message, context, activity, cancellationToken);
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.InputNodePreview, message.Text);
+
+        var actRequest = await RunReasoningAsync(message, context, activity, cancellationToken);
+
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.OutputNodePreview, actRequest.Message.Text);
+
+        return actRequest;
     }
 
     private async Task<ChatMessage> Create(string content, IWorkflowContext context)
@@ -59,9 +69,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
     private async Task<ActRequest> RunReasoningAsync(ChatMessage message, IWorkflowContext context, Activity? activity, CancellationToken cancellationToken)
     {
         var response = await agent.RunAsync(message, cancellationToken);
-
-        Annotate(activity, response.Text);
-
+      
         return new ActRequest(response.Messages.First());
     }
 

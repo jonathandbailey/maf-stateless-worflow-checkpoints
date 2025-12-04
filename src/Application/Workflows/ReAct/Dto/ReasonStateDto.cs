@@ -16,7 +16,7 @@ public class ReasonState
     /// Keys must always include: origin, destination, depart_date, return_date.
     /// Values may be null until provided by the user.
     /// </summary>
-    public Dictionary<string, string?> KnownInputs { get; set; } = new();
+    public List<string> KnownInputs { get; set; } = new();
 
     /// <summary>
     /// Keys for required inputs that are missing for the chosen capabilities.

@@ -10,6 +10,8 @@ public static class WorkflowTelemetryTags
     public const string ArtifactKey = Prefix + ".artifact_key";
 
     private const string InputPreview = Prefix + ".input.preview";
+    public const string InputNodePreview = Prefix + ".input.node.preview";
+    public const string OutputNodePreview = Prefix + ".output.node.preview";
     private const string InputLength = Prefix + ".input.length";
     private const string InputTruncated = Prefix + ".input.truncated";
 
@@ -39,6 +41,25 @@ public static class WorkflowTelemetryTags
 
         activity.SetTag(InputPreview, preview);
         activity.SetTag(InputTruncated, truncated);
+    }
+
+    public static void Preview(Activity? activity, string tag, string value, int maxPreviewLength = DefaultPreviewLength)
+    {
+        if (activity == null) return;
+
+        activity.SetTag(InputLength, value.Length);
+
+        var truncated = value.Length > maxPreviewLength;
+
+        var preview = truncated ? value.Substring(0, maxPreviewLength) : value;
+
+        if (truncated)
+        {
+            preview += " -[Truncated]";
+        }
+
+        activity.SetTag(tag, preview);
+        
     }
 
     public static void SetOutputPreview(Activity? activity, string? value, int maxPreviewLength = DefaultPreviewLength)
