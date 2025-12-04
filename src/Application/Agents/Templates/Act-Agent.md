@@ -23,6 +23,18 @@ ACTION TYPES
 }
 </JSON>
 
+### Determine Required Inputs
+- Collect the missing inputs from the user.
+
+<JSON>
+{
+  "route": "determine_required_inputs",
+  "metadata": {
+    "reason": "<brief explanation>",
+    "capabilities": ["<capability_1>", "<capability_2>"],
+  }
+}
+</JSON>
 
 ### Complete
 - No more information needed from the user.

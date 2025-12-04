@@ -72,6 +72,13 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
                 await context.SendMessageAsync(new OrchestrationRequest(extractedJson), cancellationToken: cancellationToken);
                 break;
             }
+            case "determine_required_inputs":
+            {
+                var extractedJson = JsonOutputParser.ExtractJson(response);
+
+                await context.SendMessageAsync(new RequestInputsDto(extractedJson), cancellationToken: cancellationToken);
+                break;
+            }
             default:
                 await context.AddEventAsync(
                     new TravelWorkflowErrorEvent($"Unknown route '{routeAction.Route}' returned by agent", cleanedResponse, WorkflowConstants.ActNodeName),

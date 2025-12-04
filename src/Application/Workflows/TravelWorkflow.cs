@@ -68,7 +68,7 @@ public class TravelWorkflow(
 
             if (evt is TravelWorkflowErrorEvent travelWorkflowErrorEvent)
             {
-                logger.LogError(travelWorkflowErrorEvent.Exception, "Travel Workflow Error");
+                logger.LogError(travelWorkflowErrorEvent.Exception, $"Travel Workflow Error:{travelWorkflowErrorEvent.Message}, {travelWorkflowErrorEvent.Description}");
                 return new WorkflowResponse(WorkflowState.Error, "Travel Request has failed.");
             }
 

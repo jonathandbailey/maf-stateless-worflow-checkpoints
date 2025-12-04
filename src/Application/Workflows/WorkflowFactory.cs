@@ -41,10 +41,14 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
 
         var userNode = new UserNode(userAgent);
 
+        var agentCapabilityNode = new AgentCapabilityNode();
+
         var builder = new WorkflowBuilder(reasonNode);
 
         builder.AddEdge(reasonNode, actNode);
         builder.AddEdge(actNode, userNode);
+        builder.AddEdge(actNode, agentCapabilityNode);
+        builder.AddEdge(agentCapabilityNode, reasonNode);
         builder.AddEdge(userNode, requestPort);
         builder.AddEdge(requestPort, userNode);
         builder.AddEdge(userNode, reasonNode);

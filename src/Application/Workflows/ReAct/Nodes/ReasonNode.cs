@@ -61,7 +61,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
     {
         var state = await context.ReasonState();
 
-        var template = $"user input :{content}\nstate :{state}";
+        var template = $"User :{content}\n State :{state}";
 
         return new ChatMessage(ChatRole.User, template);
     }
@@ -69,6 +69,8 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
     private async Task<ActRequest> RunReasoningAsync(ChatMessage message, IWorkflowContext context, Activity? activity, CancellationToken cancellationToken)
     {
         var response = await agent.RunAsync(message, cancellationToken);
+
+        await context.ReasonState(response.Text);
       
         return new ActRequest(response.Messages.First());
     }
