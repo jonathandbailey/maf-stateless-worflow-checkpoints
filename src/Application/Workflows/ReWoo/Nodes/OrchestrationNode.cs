@@ -30,7 +30,7 @@ public class OrchestrationNode(IAgent agent) : ReflectingExecutor<OrchestrationN
 
             var sessionState = await context.SessionState();
 
-            var response = await agent.RunAsync(new ChatMessage(ChatRole.User, message.Text), sessionState.SessionId, sessionState.UserId, cancellationToken: cancellationToken);
+            var response = await agent.RunAsync(new ChatMessage(ChatRole.User, message.Text), cancellationToken: cancellationToken);
 
             WorkflowTelemetryTags.SetOutputPreview(activity, response.Text);
 

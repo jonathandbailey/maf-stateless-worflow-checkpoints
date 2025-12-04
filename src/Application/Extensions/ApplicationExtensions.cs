@@ -3,6 +3,7 @@ using Application.Agents.Repository;
 using Application.Infrastructure;
 using Application.Services;
 using Application.Settings;
+using Application.Users;
 using Application.Workflows;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,7 @@ public static class ApplicationExtensions
         services.AddScoped<IAgentFactory, AgentFactory>();
         services.AddScoped<IAgentTemplateRepository, AgentTemplateRepository>();
         services.AddScoped<IApplicationService, ApplicationService>();
-        services.AddScoped<IAgentThreadRepository, AgentThreadRepository>();
+        services.AddScoped<IAgentMemoryService, AgentMemoryService>();
 
         services.AddScoped<IArtifactRepository, ArtifactRepository>();
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
@@ -33,9 +34,9 @@ public static class ApplicationExtensions
         services.AddScoped<IWorkflowRepository, WorkflowRepository>();
 
         services.AddHostedService<AzureStorageSeedService>();
-      
 
-
+        services.AddScoped<ISessionContextAccessor, SessionContextAccessor>();
+   
         services.AddAzureClients(azure =>
         {
             azure.AddBlobServiceClient(configuration.GetConnectionString("blobs"));

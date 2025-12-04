@@ -1,6 +1,5 @@
 ﻿using System.ClientModel;
 using Application.Agents.Repository;
-using Application.Infrastructure;
 using Application.Settings;
 using Azure.AI.OpenAI;
 using Microsoft.Agents.AI;
@@ -8,10 +7,11 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Options;
 using OpenAI;
 using Application.Workflows.ReWoo.Dto;
+using Application.Services;
 
 namespace Application.Agents;
 
-public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentThreadRepository agentThreadRepository, IOptions<LanguageModelSettings> settings) : IAgentFactory
+public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentMemoryService agentMemoryService, IOptions<LanguageModelSettings> settings) : IAgentFactory
 {
     private readonly Dictionary<AgentTypes, string> _agentTemplates = new()
     {
@@ -57,7 +57,7 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentThr
             ChatOptions = _agentChatOptions[type]
         });
 
-        return new Agent(reasonAgent, agentThreadRepository, type);
+        return new Agent(reasonAgent, agentMemoryService, type);
     }
 
     private static ChatOptions CreateFlightChatOptions()

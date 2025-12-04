@@ -30,7 +30,7 @@ public class FlightWorkerNode(IAgent agent) :
 
             var sessionState = await context.SessionState();
 
-            var response = await agent.RunAsync( new ChatMessage(ChatRole.User, serialized), sessionState.SessionId, sessionState.UserId, cancellationToken: cancellationToken);
+            var response = await agent.RunAsync( new ChatMessage(ChatRole.User, serialized), cancellationToken: cancellationToken);
 
             var responseMessage = response.Messages.First();
 

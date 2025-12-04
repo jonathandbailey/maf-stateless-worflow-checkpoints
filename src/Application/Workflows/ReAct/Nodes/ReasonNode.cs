@@ -25,8 +25,6 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
         await context.AddEventAsync(new WorkflowStatusEvent(StatusThinking), cancellationToken);
 
         Annotate(activity, requestDto.Message.Text);
-
-        await context.SessionState(new SessionState(requestDto.SessionId, requestDto.UserId, requestDto.RequestId));
    
         return await RunReasoningAsync(requestDto.Message, context, activity, cancellationToken);
     }
@@ -49,9 +47,7 @@ public class ReasonNode(IAgent agent) : ReflectingExecutor<ReasonNode>(WorkflowC
 
     private async Task<ActRequest> RunReasoningAsync(ChatMessage message, IWorkflowContext context, Activity? activity, CancellationToken cancellationToken)
     {
-        var sessionState = await context.SessionState();
-
-        var response = await agent.RunAsync(message, sessionState.SessionId, sessionState.UserId, cancellationToken);
+        var response = await agent.RunAsync(message, cancellationToken);
 
         Annotate(activity, response.Text);
 

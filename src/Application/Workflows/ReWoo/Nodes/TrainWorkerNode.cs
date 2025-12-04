@@ -27,7 +27,7 @@ public class TrainWorkerNode(IAgent agent) : ReflectingExecutor<TrainWorkerNode>
 
             var sessionState = await context.SessionState();
 
-            var response = await agent.RunAsync(new ChatMessage(ChatRole.User, serialized), sessionState.SessionId, sessionState.UserId, cancellationToken: cancellationToken);
+            var response = await agent.RunAsync(new ChatMessage(ChatRole.User, serialized), cancellationToken: cancellationToken);
     
             WorkflowTelemetryTags.SetInputPreview(activity, response.Text);
 

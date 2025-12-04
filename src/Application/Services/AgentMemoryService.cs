@@ -1,11 +1,12 @@
-﻿using Application.Workflows.ReAct.Dto;
+﻿using Application.Infrastructure;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Application.Users;
 
-namespace Application.Infrastructure;
+namespace Application.Services;
 
-public class AgentThreadRepository(IAzureStorageRepository repository, IOptions<AzureStorageSeedSettings> settings) : IAgentThreadRepository
+public class AgentMemoryService(IAzureStorageRepository repository, ISessionContextAccessor sessionContextAccessor, IOptions<AzureStorageSeedSettings> settings) : IAgentMemoryService
 {
     private const string ApplicationJsonContentType = "application/json";
 
@@ -17,25 +18,25 @@ public class AgentThreadRepository(IAzureStorageRepository repository, IOptions<
         Converters = { new JsonStringEnumConverter() }
     };
 
-    public async Task SaveAsync(Guid userId, Guid sessionId, AgentState state, string name)
+    public async Task SaveAsync(AgentState state, string name)
     {
         var serializedConversation = JsonSerializer.Serialize(state, SerializerOptions);
 
         await repository.UploadTextBlobAsync(
-            GetCheckpointFileName(userId, sessionId, name), 
+            GetStorageFileName(name), 
             settings.Value.ContainerName,
             serializedConversation, 
             ApplicationJsonContentType);
     }
 
-    public async Task<bool> ExistsAsync(Guid userId, Guid sessionId, string name)
+    public async Task<bool> ExistsAsync(string name)
     {
-        return await repository.BlobExists(GetCheckpointFileName(userId, sessionId, name), settings.Value.ContainerName);
+        return await repository.BlobExists(GetStorageFileName(name), settings.Value.ContainerName);
     }
 
-    public async Task<AgentState> LoadAsync(Guid userId, Guid sessionId, string name)
+    public async Task<AgentState> LoadAsync(string name)
     {
-        var blob = await repository.DownloadTextBlobAsync(GetCheckpointFileName(userId, sessionId, name), settings.Value.ContainerName);
+        var blob = await repository.DownloadTextBlobAsync(GetStorageFileName(name), settings.Value.ContainerName);
 
         var stateDto = JsonSerializer.Deserialize<AgentState>(blob, SerializerOptions);
 
@@ -46,17 +47,20 @@ public class AgentThreadRepository(IAzureStorageRepository repository, IOptions<
         return stateDto;
     }
 
-    private static string GetCheckpointFileName(Guid userId, Guid sessionId, string name)
+    private string GetStorageFileName(string name)
     {
+        var userId = sessionContextAccessor.Context.UserId;
+        var sessionId = sessionContextAccessor.Context.SessionId;
+
         return $"{userId}/{sessionId}/agents/{name}.json";
     }
 }
 
-public interface IAgentThreadRepository
+public interface IAgentMemoryService
 {
-    Task SaveAsync(Guid userId, Guid sessionId, AgentState state, string name);
-    Task<bool> ExistsAsync(Guid userId, Guid sessionId, string name);
-    Task<AgentState> LoadAsync(Guid userId, Guid sessionId, string name);
+    Task SaveAsync(AgentState state, string name);
+    Task<bool> ExistsAsync(string name);
+    Task<AgentState> LoadAsync(string name);
 }
 
 public class AgentState(JsonElement thread)

@@ -16,7 +16,7 @@ public class UserNode(IAgent agent) : ReflectingExecutor<UserNode>(WorkflowConst
     {
         var sessionState = await context.SessionState();
 
-        await foreach (var update in agent.RunStreamingAsync(new ChatMessage(ChatRole.User, actUserRequest.Message), sessionState.SessionId, sessionState.UserId, cancellationToken: cancellationToken))
+        await foreach (var update in agent.RunStreamingAsync(new ChatMessage(ChatRole.User, actUserRequest.Message), cancellationToken: cancellationToken))
         {
             await context.AddEventAsync(new ConversationStreamingEvent(update.Text, false, sessionState.RequestId), cancellationToken);
         }
