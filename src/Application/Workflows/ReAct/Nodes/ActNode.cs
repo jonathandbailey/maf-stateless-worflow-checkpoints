@@ -24,13 +24,13 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
 
         activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ActNodeName);
 
-        WorkflowTelemetryTags.SetInputPreview(activity, request.Message.Text);
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.InputNodePreview, request.Message.Text);
     
         var update = await agent.RunAsync(request.Message, cancellationToken: cancellationToken);
 
         var response = update.Text;
 
-        WorkflowTelemetryTags.SetInputPreview(activity, response);
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.OutputNodePreview, response);
 
         if (!JsonOutputParser.HasJson(response))
         {

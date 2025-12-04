@@ -25,5 +25,5 @@ public static class WorkflowConstants
     public const string ExchangeId = "ExchangeId";
 
     public const string ScopeGlobal = "Global";
-    public const string UserNode = "UserNode";
+    public const string UserNodeName = "UserNode";
 }
