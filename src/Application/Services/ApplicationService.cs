@@ -1,5 +1,6 @@
 ﻿using Application.Infrastructure;
 using Application.Interfaces;
+using Application.Models;
 using Application.Workflows;
 using Application.Workflows.ReAct.Dto;
 using Microsoft.Extensions.AI;
@@ -12,6 +13,7 @@ public class ApplicationService(
     IWorkflowFactory workflowFactory, 
     IWorkflowRepository workflowRepository, 
     ICheckpointRepository repository, 
+    ITravelPlanService travelPlanService,
     IUserStreamingService userStreamingService,
     ILogger<ApplicationService> logger)
     : IApplicationService
@@ -21,6 +23,13 @@ public class ApplicationService(
         var workflow = await workflowFactory.Create();
         
         var state = await workflowRepository.LoadAsync(request.UserId, request.SessionId);
+
+        if (!await travelPlanService.ExistsAsync())
+        {
+            var travelPlan = new TravelPlan();
+
+            await travelPlanService.SaveAsync(travelPlan);
+        }
 
         var checkpointManager = CheckpointManager.CreateJson(new CheckpointStore(repository, request.UserId, request.SessionId));
 

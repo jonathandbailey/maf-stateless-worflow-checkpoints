@@ -33,7 +33,12 @@ public class TravelWorkflow(
         activity?.AddTag("workflow.has_checkpoint", (CheckpointInfo != null).ToString());
         activity?.AddTag("workflow.user.message", requestDto.Message.Text);
 
-        var run = await workflow.CreateStreamingRun(requestDto, State, CheckpointManager, CheckpointInfo);
+        var run = await workflow.CreateStreamingRun(
+            new ActObservation(requestDto.Message.Text)
+            {
+                Observation = requestDto.Message.Text,
+                ResultType = "UserInput"
+            }, State, CheckpointManager, CheckpointInfo);
 
         await foreach (var evt in run.Run.WatchStreamAsync())
         {

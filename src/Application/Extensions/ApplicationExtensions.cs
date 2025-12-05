@@ -36,6 +36,8 @@ public static class ApplicationExtensions
         services.AddHostedService<AzureStorageSeedService>();
 
         services.AddScoped<ISessionContextAccessor, SessionContextAccessor>();
+
+        services.AddScoped<ITravelPlanService, TravelPlanService>();
    
         services.AddAzureClients(azure =>
         {

@@ -63,14 +63,14 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentMem
 
     private static ChatOptions CreateReasonChatOptions()
     {
-        var schema = AIJsonUtilities.CreateJsonSchema(typeof(ReasonState));
+        var schema = AIJsonUtilities.CreateJsonSchema(typeof(ActRequest));
 
         ChatOptions chatOptions = new()
         {
             ResponseFormat = ChatResponseFormat.ForJsonSchema(
                 schema: schema,
-                schemaName: "ReasonState",
-                schemaDescription: "User Reasoning State for their vacation planning.")
+                schemaName: "ReasoningActRequest",
+                schemaDescription: "Reasoning State for Act.")
         };
 
         return chatOptions;

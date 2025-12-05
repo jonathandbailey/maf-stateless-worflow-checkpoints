@@ -1,8 +1,10 @@
-﻿using Microsoft.Extensions.AI;
+﻿namespace Application.Workflows.ReAct.Dto;
 
-namespace Application.Workflows.ReAct.Dto;
-
-public class ActRequest(ChatMessage message)
+public class ActRequest
 {
-    public ChatMessage Message { get; init; } = message;
+    public string Thought { get; set; } = string.Empty;
+
+    public string NextAction { get; set; } = string.Empty;
+
+    public Dictionary<string, string> Parameters { get; set; } = new();
 }

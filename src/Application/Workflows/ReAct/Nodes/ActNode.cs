@@ -1,8 +1,8 @@
-﻿using Application.Agents;
+﻿using System.Text.Json;
+using Application.Agents;
 using Application.Observability;
 using Application.Workflows.Events;
 using Application.Workflows.ReAct.Dto;
-using Application.Workflows.ReWoo.Dto;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 
@@ -15,7 +15,7 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
 
     private const string StatusExecuting = "Executing...";
 
-    public async ValueTask HandleAsync(ActRequest request, IWorkflowContext context,
+    public async ValueTask HandleAsync(ActRequest message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
         await context.AddEventAsync(new WorkflowStatusEvent(StatusExecuting), cancellationToken);
@@ -24,65 +24,14 @@ public class ActNode(IAgent agent) : ReflectingExecutor<ActNode>(WorkflowConstan
 
         activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.ActNodeName);
 
-        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.InputNodePreview, request.Message.Text);
-    
-        var update = await agent.RunAsync(request.Message, cancellationToken: cancellationToken);
+        var serialized = JsonSerializer.Serialize(message);
 
-        var response = update.Text;
+        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.InputNodePreview, serialized);
 
-        WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.OutputNodePreview, response);
-
-        if (!JsonOutputParser.HasJson(response))
+        switch (message.NextAction)
         {
-            await context.AddEventAsync(new TravelWorkflowErrorEvent(NoJsonReturnedByAgent,response, WorkflowConstants.ActNodeName), cancellationToken);
-            return;
-        }
-        
-        RouteAction routeAction;
-        
-        try
-        {
-            routeAction = JsonOutputParser.Parse<RouteAction>(response);
-        }
-        catch (Exception ex)
-        {
-            await context.AddEventAsync(
-                new TravelWorkflowErrorEvent(AgentJsonParseFailed, response, WorkflowConstants.ActNodeName, ex),
-                cancellationToken);
-            return;
-        }
-
-        var cleanedResponse = JsonOutputParser.Remove(response);
-
-        activity?.SetTag("workflow.route.message", cleanedResponse);
-        activity?.SetTag("workflow.route", routeAction.Route);
-
-        switch (routeAction.Route)
-        {
-            case "ask_user":
-                await context.SendMessageAsync(new ActUserRequest(cleanedResponse), cancellationToken: cancellationToken);
-                break;
-            case "complete":
-                await context.AddEventAsync(new ReasonActWorkflowCompleteEvent(cleanedResponse), cancellationToken);
-                break;
-            case "orchestrate":
-            {
-                var extractedJson = JsonOutputParser.ExtractJson(response);
-
-                await context.SendMessageAsync(new OrchestrationRequest(extractedJson), cancellationToken: cancellationToken);
-                break;
-            }
-            case "determine_required_inputs":
-            {
-                var extractedJson = JsonOutputParser.ExtractJson(response);
-
-                await context.SendMessageAsync(new RequestInputsDto(extractedJson), cancellationToken: cancellationToken);
-                break;
-            }
-            default:
-                await context.AddEventAsync(
-                    new TravelWorkflowErrorEvent($"Unknown route '{routeAction.Route}' returned by agent", cleanedResponse, WorkflowConstants.ActNodeName),
-                    cancellationToken);
+            case "AskUser":
+                await context.SendMessageAsync(new ActUserRequest(serialized), cancellationToken: cancellationToken);
                 break;
         }
     }

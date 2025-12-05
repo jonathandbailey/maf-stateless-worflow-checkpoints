@@ -1,5 +1,6 @@
 ﻿using Application.Agents;
 using Application.Infrastructure;
+using Application.Services;
 using Application.Workflows.ReAct.Dto;
 using Application.Workflows.ReAct.Nodes;
 using Application.Workflows.ReWoo.Dto;
@@ -9,7 +10,7 @@ using Microsoft.Agents.AI.Workflows;
 
 namespace Application.Workflows;
 
-public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository artifactRepository) : IWorkflowFactory
+public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository artifactRepository, ITravelPlanService travelPlanService) : IWorkflowFactory
 {
     public async Task<Workflow> Create()
     {
@@ -29,7 +30,7 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
 
         var requestPort = RequestPort.Create<UserRequest, UserResponse>("user-input");
 
-        var reasonNode = new ReasonNode(reasonAgent);
+        var reasonNode = new ReasonNode(reasonAgent, travelPlanService);
         var actNode = new ActNode(actAgent);
         var orchestrationNode = new OrchestrationNode(orchestrationAgent);
 
