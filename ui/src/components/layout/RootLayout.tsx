@@ -1,5 +1,5 @@
 import ChatInput from "../chat/ChatInput"
-import { Flex, Splitter, Tabs, Timeline } from "antd"
+import { Flex, Splitter, Tabs, Timeline, Layout } from "antd"
 import type { TabsProps } from "antd";
 import { useState } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
@@ -13,6 +13,8 @@ import { useChatResponseHandler } from "../../hooks/useChatResponseHandler";
 import { useStatusUpdateHandler } from "../../hooks/useStatusUpdateHandler";
 import { useExchangeStatusUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
 import { useArtifactHandler } from "../../hooks/useArtifactHandler";
+
+const { Header, Footer, Sider, Content } = Layout;
 
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
@@ -47,38 +49,45 @@ const RootLayout = () => {
 
     return <>
 
-        <Splitter style={{ width: '100vw', height: '100vh', margin: '0px', padding: '0px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-            <Splitter.Panel defaultSize="50%" min="20%" max="70%">
-                <div className={styles.container}>
-                    <Flex vertical className={styles.layout}>
-                        <div className={styles.content}>
-                            {exchanges.map((exchange, idx) => (
-                                <div key={idx}>
-                                    <Flex justify="flex-end" className={styles.userMessageContainer}>
-                                        <UserMessage message={exchange.user} />
-                                    </Flex>
-                                    <AssistantMessage message={exchange.assistant} />
+        <Layout>
+            <Header className={styles.header}></Header>
+            <Content className={styles.contentArea}>
+                <Splitter style={{ width: '100vw', height: 'calc(100vh - 60px)', margin: '0px', padding: '0px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
+                    <Splitter.Panel defaultSize="50%" min="20%" max="70%">
+                        <div className={styles.container}>
+                            <Flex vertical className={styles.layout}>
+                                <div className={styles.content}>
+                                    {exchanges.map((exchange, idx) => (
+                                        <div key={idx}>
+                                            <Flex justify="flex-end" className={styles.userMessageContainer}>
+                                                <UserMessage message={exchange.user} />
+                                            </Flex>
+                                            <AssistantMessage message={exchange.assistant} />
+                                        </div>
+                                    ))}
                                 </div>
-                            ))}
-                        </div>
 
-                        <div className={styles.chatInputContainer}>
-                            <ChatInput onEnter={handlePrompt} />
+                                <div className={styles.chatInputContainer}>
+                                    <ChatInput onEnter={handlePrompt} />
+                                </div>
+                            </Flex>
                         </div>
-                    </Flex>
-                </div>
-            </Splitter.Panel>
-            <Splitter.Panel defaultSize="50%">
-                <div>
-                    <Tabs
-                        items={tabs}
-                        activeKey={activeKey}
-                        onChange={setActiveKey}
-                        tabPlacement="top"
-                    />
-                </div>
-            </Splitter.Panel>
-        </Splitter>
+                    </Splitter.Panel>
+                    <Splitter.Panel defaultSize="50%">
+                        <div>
+                            <Tabs
+                                items={tabs}
+                                activeKey={activeKey}
+                                onChange={setActiveKey}
+                                tabPlacement="top"
+                            />
+                        </div>
+                    </Splitter.Panel>
+                </Splitter>
+
+            </Content>
+
+        </Layout>
 
 
 

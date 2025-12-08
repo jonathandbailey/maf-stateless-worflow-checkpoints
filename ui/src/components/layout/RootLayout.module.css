@@ -2,7 +2,7 @@
     max-width: 680px;
     width: 100%;
     margin: 0 auto;
-    height: 100vh;
+    height: calc(100vh - 60px);
 }
 
 .layout {
@@ -30,4 +30,17 @@
     
     padding: 20px 0;
     margin-left: 24;
+}
+.contentArea {
+    background-color: #fff;
+}
+
+.header {
+    position: sticky;
+    height: 60px;
+    top: 0;
+     background: #fff;
+    z-index: 10;
+
+    border-bottom: 1px solid #eaeaea;
 }
