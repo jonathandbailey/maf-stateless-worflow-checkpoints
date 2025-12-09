@@ -10,9 +10,18 @@ public class TravelPlan
 
 public class TravelPlanSummary(TravelPlan plan)
 {
-    public bool HasOrigin { get; set; } = !string.IsNullOrEmpty(plan.Origin);
-    public bool HasDestination { get; set; } = !string.IsNullOrEmpty(plan.Destination);
-    public bool HasDates { get; set; } = plan.StartDate.HasValue && plan.EndDate.HasValue;
+    public string Origin { get; set; } = !string.IsNullOrEmpty(plan.Origin) ? plan.Origin : TravelPlanSummaryConstants.NotSet;
+
+    public string Destination { get; set; } = !string.IsNullOrEmpty(plan.Destination) ? plan.Destination : TravelPlanSummaryConstants.NotSet;
+
+    public string StartDate { get; set; } = plan.StartDate?.ToString("yyyy-MM-dd") ?? TravelPlanSummaryConstants.NotSet;
+
+    public string EndDate { get; set; } = plan.EndDate?.ToString("yyyy-MM-dd") ?? TravelPlanSummaryConstants.NotSet;
+}
+
+public static class TravelPlanSummaryConstants
+{
+    public const string NotSet = "Not_Set";
 }
 
 

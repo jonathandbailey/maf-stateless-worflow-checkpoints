@@ -1,10 +1,22 @@
 import './App.css'
 import RootLayout from './components/layout/RootLayout'
 import streamingService from './services/streaming.service';
-
-streamingService.initialize();
+import { useEffect } from 'react';
 
 function App() {
+
+  useEffect(() => {
+    const initializeStreaming = async () => {
+      try {
+        await streamingService.initialize();
+        console.log('Streaming service initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize streaming service:', error);
+      }
+    };
+
+    initializeStreaming();
+  }, []);
 
   return (
     <>

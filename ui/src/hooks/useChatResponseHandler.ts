@@ -5,29 +5,30 @@ import { UIFactory } from "../factories/UIFactory";
 import streamingService from "../services/streaming.service";
 
 interface UseChatResponseHandlerProps {
-    setExchanges: React.Dispatch<React.SetStateAction<UIExchange[]>>;
+    setActiveExchange: React.Dispatch<React.SetStateAction<UIExchange | null>>;
 }
 
-export const useChatResponseHandler = ({ setExchanges }: UseChatResponseHandlerProps) => {
+export const useChatResponseHandler = ({ setActiveExchange }: UseChatResponseHandlerProps) => {
     useEffect(() => {
         const handleUserResponse = (response: ChatResponseDto) => {
+            console.log('Chat response received:', response);
             if (!response) return;
 
-            console.log("User response received:", response);
-            setExchanges(prev => prev.map(exchange => {
-                if (exchange.assistant.id === response.id) {
+            // Find the matching exchange and update active exchange
+            setActiveExchange(prev => {
+                if (prev && prev.assistant.id === response.id) {
                     const updatedAssistant = UIFactory.updateAssistantMessage(
-                        exchange.assistant,
-                        exchange.assistant.text + (response.message || ''),
+                        prev.assistant,
+                        prev.assistant.text + (response.message || ''),
                         false
                     );
                     return {
-                        ...exchange,
+                        ...prev,
                         assistant: updatedAssistant
                     };
                 }
-                return exchange;
-            }));
+                return prev;
+            });
         };
 
         streamingService.on("user", handleUserResponse);
@@ -35,5 +36,5 @@ export const useChatResponseHandler = ({ setExchanges }: UseChatResponseHandlerP
         return () => {
             streamingService.off("user", handleUserResponse);
         };
-    }, [setExchanges]);
+    }, [setActiveExchange]);
 };

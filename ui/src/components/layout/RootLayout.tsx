@@ -19,19 +19,25 @@ const { Header, Footer, Sider, Content } = Layout;
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
     const [exchanges, setExchanges] = useState<UIExchange[]>([]);
+    const [activeExchange, setActiveExchange] = useState<UIExchange | null>(null);
     const [statusItems, setStatusItems] = useState<Status[]>([]);
     const [tabs, setTabs] = useState<TabsProps['items']>([]);
     const [activeKey, setActiveKey] = useState<string>();
 
-    useChatResponseHandler({ setExchanges });
+    // Debug status items changes
+    console.log('Current statusItems:', statusItems);
+
+    useChatResponseHandler({ setActiveExchange });
     useStatusUpdateHandler({ setStatusItems });
-    useExchangeStatusUpdateHandler({ setExchanges });
+    // useExchangeStatusUpdateHandler({ setExchanges });
     useArtifactHandler({ sessionId, setTabs, setActiveKey });
 
     function handlePrompt(value: string): void {
         const newExchange = UIFactory.createUIExchange(value);
 
-        setExchanges(prev => [...prev, newExchange]);
+        setActiveExchange(newExchange);
+
+        // setExchanges(prev => [...prev, newExchange]);
         setStatusItems([]);
 
         const conversationService = new ConversationService();
@@ -51,41 +57,65 @@ const RootLayout = () => {
 
         <Layout>
             <Header className={styles.header}></Header>
-            <Content className={styles.contentArea}>
-                <Splitter style={{ width: '100vw', height: 'calc(100vh - 60px)', margin: '0px', padding: '0px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }}>
-                    <Splitter.Panel defaultSize="50%" min="20%" max="70%">
-                        <div className={styles.container}>
-                            <Flex vertical className={styles.layout}>
-                                <div className={styles.content}>
-                                    {exchanges.map((exchange, idx) => (
-                                        <div key={idx}>
-                                            <Flex justify="flex-end" className={styles.userMessageContainer}>
-                                                <UserMessage message={exchange.user} />
-                                            </Flex>
-                                            <AssistantMessage message={exchange.assistant} />
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className={styles.chatInputContainer}>
-                                    <ChatInput onEnter={handlePrompt} />
-                                </div>
-                            </Flex>
-                        </div>
-                    </Splitter.Panel>
-                    <Splitter.Panel defaultSize="50%">
-                        <div>
+            <Layout>
+                <Content className={styles.contentArea}>
+                    <div className={styles.container}>
+                        <Flex vertical className={styles.layout}>
                             <Tabs
                                 items={tabs}
                                 activeKey={activeKey}
                                 onChange={setActiveKey}
                                 tabPlacement="top"
                             />
-                        </div>
-                    </Splitter.Panel>
-                </Splitter>
+                            {activeExchange && (
+                                <div>
+                                    <Flex justify="flex-end" className={styles.userMessageContainer}>
+                                        <UserMessage message={activeExchange?.user} />
+                                    </Flex>
+                                    <AssistantMessage message={activeExchange?.assistant} />
+                                </div>
+                            )}
 
-            </Content>
+                            <div className={styles.chatInputContainer}>
+                                <ChatInput onEnter={handlePrompt} />
+                            </div>
+                        </Flex>
+                    </div>
+                </Content>
+                <Sider className={styles.statusSidebar} width={300} >
+                    <div className={styles.container}>
+                        <Tabs>
+                            <Tabs.TabPane tab="Chat" key="chat">
+                                <Flex vertical className={styles.layout}>
+                                    <div className={styles.content}>
+                                        {exchanges.map((exchange, idx) => (
+                                            <div key={idx}>
+                                                <Flex justify="flex-end" className={styles.userMessageContainer}>
+                                                    <UserMessage message={exchange.user} />
+                                                </Flex>
+                                                <AssistantMessage message={exchange.assistant} />
+                                            </div>
+                                        ))}
+                                    </div>
+
+
+                                </Flex>
+                            </Tabs.TabPane>
+                            <Tabs.TabPane tab="Status" key="status">
+                                <Timeline>
+                                    {statusItems.map((status, index) => (
+                                        <Timeline.Item key={index} >
+                                            {status.message}
+                                        </Timeline.Item>
+                                    ))}
+                                </Timeline>
+                            </Tabs.TabPane>
+                        </Tabs>
+
+                    </div>
+                </Sider>
+            </Layout>
+
 
         </Layout>
 

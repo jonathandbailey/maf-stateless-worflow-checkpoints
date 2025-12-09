@@ -35,6 +35,13 @@
     background-color: #fff;
 }
 
+.statusSidebar {
+    width: 250px;
+    border-left: 1px solid #eaeaea;
+    padding: 20px;
+    background: #fff;
+}
+
 .header {
     position: sticky;
     height: 60px;

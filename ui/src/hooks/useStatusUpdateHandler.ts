@@ -10,12 +10,17 @@ interface UseStatusUpdateHandlerProps {
 export const useStatusUpdateHandler = ({ setStatusItems }: UseStatusUpdateHandlerProps) => {
     useEffect(() => {
         const handleStatusUpdate = (response: ChatResponseDto) => {
+            console.log('Status update received:', response);
             if (!response) return;
 
-            setStatusItems(prev => [
-                ...prev,
-                { message: response.message || '' }
-            ]);
+            setStatusItems(prev => {
+                const newItems = [
+                    ...prev,
+                    { message: response.message || '' }
+                ];
+                console.log('Setting status items:', newItems);
+                return newItems;
+            });
         };
 
         streamingService.on("status", handleStatusUpdate);
