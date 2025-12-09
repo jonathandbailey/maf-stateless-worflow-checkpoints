@@ -1,5 +1,6 @@
 import type { FlightOptionDto } from "../../../types/dto/flight.dto";
-import Flight from "./flight";
+import Flight from "./Flight";
+
 
 interface FlightListProps {
     flights: FlightOptionDto[];

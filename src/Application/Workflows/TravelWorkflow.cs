@@ -83,6 +83,11 @@ public class TravelWorkflow(
                 await userStreamingService.Stream(requestDto.UserId, string.Empty, true, requestDto.RequestId);
             }
 
+            if (evt is TravelPlanUpdatedEvent)
+            {
+                await userStreamingService.TravelPlan(requestDto.UserId);
+            }
+
             if (evt is WorkflowStatusEvent statusEvent)
             {
                 await userStreamingService.Status(requestDto.UserId, statusEvent.Status, requestDto.RequestId);

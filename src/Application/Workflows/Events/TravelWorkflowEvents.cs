@@ -43,6 +43,8 @@ public class UserStreamingEvent(string message) : WorkflowEvent(message)
 
 public class UserStreamingCompleteEvent : WorkflowEvent { }
 
+public class TravelPlanUpdatedEvent : WorkflowEvent { }
+
 public class WorkflowStatusEvent(string message) : WorkflowEvent(message)
 {
     public string Status { get; } = message;

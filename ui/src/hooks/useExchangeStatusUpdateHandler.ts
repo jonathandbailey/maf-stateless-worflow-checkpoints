@@ -1,37 +1,35 @@
 import { useEffect } from "react";
 import type { ChatResponseDto } from "../types/dto/chat-response.dto";
-import type { UIExchange } from "../types/ui/UIExchange";
 import streamingService from "../services/streaming.service";
+import type { TravelPlanDto } from "../types/dto/travel-plan.dto";
+import { ConversationService } from "../services/conversation.service";
 
 interface UseExchangeStatusUpdateHandlerProps {
-    setExchanges: React.Dispatch<React.SetStateAction<UIExchange[]>>;
+    sessionId: string;
+    setTravelPlan: React.Dispatch<React.SetStateAction<TravelPlanDto | null>>;
 }
 
-export const useExchangeStatusUpdateHandler = ({ setExchanges }: UseExchangeStatusUpdateHandlerProps) => {
+export const useTravelPlanUpdateHandler = ({ sessionId, setTravelPlan }: UseExchangeStatusUpdateHandlerProps) => {
     useEffect(() => {
 
-        const handleExchangeStatusUpdate = (response: ChatResponseDto) => {
-            setExchanges(prev =>
-                prev.map(exchange => {
-                    if (exchange.assistant.id === response.id) {
-                        return {
-                            ...exchange,
-                            assistant: {
-                                ...exchange.assistant,
-                                statusMessage: response.message || ''
-                            }
-                        };
-                    }
-                    return exchange;
+        const handleExchangeStatusUpdate = () => {
+
+            console.log('Requesting travel plan for sessionId:', sessionId);
+            const conversationService = new ConversationService();
+            conversationService.getTravelPlan(sessionId)
+
+                .then((travelPlan: TravelPlanDto) => {
+                    console.log('Travel plan received:', travelPlan);
+                    setTravelPlan(travelPlan);
                 })
-            );
+
         };
 
-        streamingService.on("status", handleExchangeStatusUpdate);
+        streamingService.on("travelPlan", handleExchangeStatusUpdate);
 
         return () => {
 
-            streamingService.off("status", handleExchangeStatusUpdate);
+            streamingService.off("travelPlan", handleExchangeStatusUpdate);
         };
-    }, [setExchanges]);
+    }, [setTravelPlan]);
 };

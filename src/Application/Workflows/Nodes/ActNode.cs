@@ -48,6 +48,8 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
         CancellationToken cancellationToken)
     {
         await travelPlanService.UpdateAsync(message.TravelPlanUpdate!);
+
+        await context.AddEventAsync(new TravelPlanUpdatedEvent(), cancellationToken);
     }
 }
 

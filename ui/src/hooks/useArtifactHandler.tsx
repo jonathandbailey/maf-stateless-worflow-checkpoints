@@ -15,7 +15,6 @@ interface UseArtifactHandlerProps {
 export const useArtifactHandler = ({ sessionId, setTabs, setActiveKey }: UseArtifactHandlerProps) => {
     useEffect(() => {
         const handleArtifact = (response: ArtifactStatusDto) => {
-            console.log("Artifact status received:", response);
 
             if (response.key === 'flights') {
                 const conversationService = new ConversationService();

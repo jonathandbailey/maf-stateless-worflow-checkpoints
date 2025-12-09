@@ -1,6 +1,7 @@
 ﻿using Api.Dto;
 using Api.Extensions;
 using Application.Infrastructure;
+using Application.Models;
 using Application.Services;
 using Application.Users;
 using Application.Workflows.Dto;
@@ -14,6 +15,7 @@ public static class ApiMappings
     private const string ApiConversationsRoot = "api";
     private const string GetFlightPlanPath = "plans/{sessionId}/flights";
     private const string GetHotelPlanPath = "plans/{sessionId}/hotels";
+    private const string GetTravelPlanPath = "plans/{sessionId}/travel";
 
     public static WebApplication MapApi(this WebApplication app)
     {
@@ -22,6 +24,7 @@ public static class ApiMappings
         api.MapPost("/conversations", ConversationExchange);
         api.MapGet(GetFlightPlanPath, GetFlightPlan);
         api.MapGet(GetHotelPlanPath, GetHotelPlan);
+        api.MapGet(GetTravelPlanPath, GetTravelPlan);
 
         return app;
     }
@@ -37,6 +40,18 @@ public static class ApiMappings
         var response = await service.Execute(new ConversationRequest(requestDto.SessionId, context.User.Id(), requestDto.Message, requestDto.ExchangeId));
         
         return TypedResults.Ok(new ConversationResponseDto(response.Message, response.SessionId, response.ExchangeId));
+    }
+
+    private static async Task<Ok<TravelPlan>> GetTravelPlan(
+        Guid sessionId, 
+        ITravelPlanService service,
+        ISessionContextAccessor sessionContextAccessor,
+        HttpContext context)
+    {
+        sessionContextAccessor.Initialize(context.User.Id(), sessionId);
+
+        var travelPlan = await service.LoadAsync();
+        return TypedResults.Ok(travelPlan);
     }
 
     private static async Task<Ok<FlightSearchResultDto>> GetFlightPlan(

@@ -12,7 +12,6 @@ interface UseChatResponseHandlerProps {
 export const useChatResponseHandler = ({ setActiveExchange, setExchanges }: UseChatResponseHandlerProps) => {
     useEffect(() => {
         const handleUserResponse = (response: ChatResponseDto) => {
-            console.log('Chat response received:', response);
             if (!response) return;
 
             // Find the matching exchange and update active exchange
@@ -30,8 +29,6 @@ export const useChatResponseHandler = ({ setActiveExchange, setExchanges }: UseC
 
                     // Check if it's the end of stream
                     if (response.isEndOfStream) {
-                        // Add the exchange to the list of exchanges if it doesn't already exist
-                        console.log('Finalizing exchange:', updatedExchange);
                         setExchanges(prevExchanges => {
                             const existingIndex = prevExchanges.findIndex(ex => ex.assistant.id === updatedExchange.assistant.id);
                             if (existingIndex >= 0) {

@@ -11,7 +11,7 @@ import { UIFactory } from '../../factories/UIFactory';
 import type { Status } from "../../types/ui/Status";
 import { useChatResponseHandler } from "../../hooks/useChatResponseHandler";
 import { useStatusUpdateHandler } from "../../hooks/useStatusUpdateHandler";
-import { useExchangeStatusUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
+import { useTravelPlanUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
 import { useArtifactHandler } from "../../hooks/useArtifactHandler";
 
 const { Header, Footer, Sider, Content } = Layout;

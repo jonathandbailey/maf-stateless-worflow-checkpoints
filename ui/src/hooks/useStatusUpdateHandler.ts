@@ -10,7 +10,6 @@ interface UseStatusUpdateHandlerProps {
 export const useStatusUpdateHandler = ({ setStatusItems }: UseStatusUpdateHandlerProps) => {
     useEffect(() => {
         const handleStatusUpdate = (response: ChatResponseDto) => {
-            console.log('Status update received:', response);
             if (!response) return;
 
             setStatusItems(prev => {
@@ -18,7 +17,6 @@ export const useStatusUpdateHandler = ({ setStatusItems }: UseStatusUpdateHandle
                     ...prev,
                     { message: response.message || '' }
                 ];
-                console.log('Setting status items:', newItems);
                 return newItems;
             });
         };

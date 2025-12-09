@@ -37,6 +37,16 @@ public class UserStreamingService(IHubContext<UserHub> hub, IUserConnectionManag
         }
     }
 
+    public async Task TravelPlan(Guid userId)
+    {
+        var connections = userConnectionManager.GetConnections(userId);
+
+        foreach (var connectionId in connections)
+        {
+            await hub.Clients.Client(connectionId).SendAsync("travelPlan");
+        }
+    }
+
     public async Task Artifact(Guid userId, string key)
     {
         var connections = userConnectionManager.GetConnections(userId);

@@ -11,8 +11,10 @@ import { UIFactory } from '../../factories/UIFactory';
 import type { Status } from "../../types/ui/Status";
 import { useChatResponseHandler } from "../../hooks/useChatResponseHandler";
 import { useStatusUpdateHandler } from "../../hooks/useStatusUpdateHandler";
-import { useExchangeStatusUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
+import { useTravelPlanUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
 import { useArtifactHandler } from "../../hooks/useArtifactHandler";
+import TravelPlan from "../travel/plan/TravelPlan";
+import type { TravelPlanDto } from "../../types/dto/travel-plan.dto";
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -23,13 +25,13 @@ const RootLayout = () => {
     const [statusItems, setStatusItems] = useState<Status[]>([]);
     const [tabs, setTabs] = useState<TabsProps['items']>([]);
     const [activeKey, setActiveKey] = useState<string>();
+    const [travelPlan, setTravelPlan] = useState<TravelPlanDto | null>(null);
 
     // Debug status items changes
-    console.log('Current statusItems:', statusItems);
 
     useChatResponseHandler({ setActiveExchange, setExchanges });
     useStatusUpdateHandler({ setStatusItems });
-    // useExchangeStatusUpdateHandler({ setExchanges });
+    useTravelPlanUpdateHandler({ sessionId, setTravelPlan });
     useArtifactHandler({ sessionId, setTabs, setActiveKey });
 
     function handlePrompt(value: string): void {
@@ -60,6 +62,9 @@ const RootLayout = () => {
 
             <Layout>
                 <Content className={styles.content}>
+                    <div>
+                        <TravelPlan travelPlan={travelPlan} />
+                    </div>
                     <div className={styles.mainArea}>
                         <Tabs items={
                             tabs
