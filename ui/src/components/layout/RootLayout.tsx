@@ -1,5 +1,5 @@
 import ChatInput from "../chat/ChatInput"
-import { Flex, Splitter, Tabs, Timeline, Layout, Spin } from "antd"
+import { Flex, Typography, Tabs, Timeline, Layout, Spin } from "antd"
 import type { TabsProps } from "antd";
 import { useState } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
@@ -16,7 +16,9 @@ import { useArtifactHandler } from "../../hooks/useArtifactHandler";
 import TravelPlan from "../travel/plan/TravelPlan";
 import type { TravelPlanDto } from "../../types/dto/travel-plan.dto";
 
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Sider, Content } = Layout;
+
+const { Text } = Typography;
 
 const RootLayout = () => {
     const [sessionId] = useState<string>(crypto.randomUUID());
@@ -58,27 +60,33 @@ const RootLayout = () => {
     return <>
 
         <Layout className={styles.layout}>
-            <Header className={styles.header}></Header>
+            <Header className={styles.header}>
+                <Flex justify="start" align="center" style={{ height: "100%" }}>
+                    <Text style={{ color: "black", fontSize: "24px" }}>Travel Agent</Text>
+                </Flex>
+
+            </Header>
 
             <Layout>
                 <Content style={{ background: "white" }} >
 
 
                     <div style={{ padding: "24px" }}>
-                        <Flex justify="center" align="start" style={{ minHeight: 'auto', flex: 'none' }}>
+                        <Flex justify="center" align="start" style={{ height: '100px', flex: 'none' }}>
                             <TravelPlan travelPlan={travelPlan} />
                         </Flex>
                     </div>
 
-
-                    <div style={{ padding: "24px" }} >
-                        <Tabs
-                            items={tabs}
-                            type="card"
-                            activeKey={activeKey}
-                            onChange={setActiveKey}
-                        />
-                    </div>
+                    {tabs && tabs.length > 0 && (
+                        <div style={{ padding: "24px", flex: 1, height: `calc(100vh - 400px)` }} >
+                            <Tabs
+                                items={tabs}
+                                type="card"
+                                activeKey={activeKey}
+                                onChange={setActiveKey}
+                            />
+                        </div>
+                    )}
                     <div className={styles.chatInputContainer}>
                         <Flex vertical>
                             <div>
