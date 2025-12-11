@@ -18,7 +18,8 @@ public static class ApplicationExtensions
         services.Configure<LanguageModelSettings>(settings => 
             configuration.GetSection("LanguageModelSettings").Bind(settings));
 
-        services.Configure<AzureStorageSeedSettings>((options) => configuration.GetSection("AzureStorageSeedSettings").Bind(options));
+        services.Configure<AzureStorageSeedSettings>(options => configuration.GetSection("AzureStorageSeedSettings").Bind(options));
+        services.Configure<List<UserSettings>>(options => configuration.GetSection("Users").Bind(options));
 
         services.AddScoped<IAgentFactory, AgentFactory>();
         services.AddScoped<IAgentTemplateRepository, AgentTemplateRepository>();
