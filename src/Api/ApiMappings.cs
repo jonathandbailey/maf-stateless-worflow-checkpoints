@@ -1,5 +1,6 @@
 ﻿using Api.Dto;
 using Api.Extensions;
+using Application.Dto;
 using Application.Infrastructure;
 using Application.Models;
 using Application.Services;
@@ -16,6 +17,7 @@ public static class ApiMappings
     private const string GetFlightPlanPath = "plans/{sessionId}/flights";
     private const string GetHotelPlanPath = "plans/{sessionId}/hotels";
     private const string GetTravelPlanPath = "plans/{sessionId}/travel";
+    private const string PostUserAuthPath = "user/auth";
 
     public static WebApplication MapApi(this WebApplication app)
     {
@@ -25,8 +27,18 @@ public static class ApiMappings
         api.MapGet(GetFlightPlanPath, GetFlightPlan);
         api.MapGet(GetHotelPlanPath, GetHotelPlan);
         api.MapGet(GetTravelPlanPath, GetTravelPlan);
+        api.MapPost(PostUserAuthPath, PostUserAuth);
 
         return app;
+    }
+
+    private static async Task<Ok<UserProfileDto>> PostUserAuth(
+        [FromBody] UserAuthRequest requestDto,
+        IUserService service,
+        HttpContext context)
+    {
+        var userProfile = await service.AuthenticateUser(requestDto.Username);
+        return TypedResults.Ok(userProfile);
     }
 
     private static async Task<Ok<ConversationResponseDto>> ConversationExchange(
