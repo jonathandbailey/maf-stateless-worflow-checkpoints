@@ -21,7 +21,7 @@
 }
 
 .layout {
-    height: calc(100vh - 160px);
+    height: 100vh;
     background: #fff;
 }
 
@@ -70,7 +70,7 @@
 
 .header {
     position: sticky;
-    height: 60px;
+    height: 64px;
     top: 0;
      background: #fff;
     z-index: 10;
