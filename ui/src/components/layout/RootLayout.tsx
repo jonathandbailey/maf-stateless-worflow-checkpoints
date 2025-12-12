@@ -22,6 +22,8 @@ import { FaPlaneUp } from "react-icons/fa6";
 import Welcome from "./Welcome";
 import { MenuFoldOutlined, MenuUnfoldOutlined } from "@ant-design/icons";
 
+import TravelIcon from '../../assets/fly.png';
+
 const { Header, Sider, Content } = Layout;
 
 const { Title } = Typography;
@@ -72,8 +74,13 @@ const RootLayout = () => {
             <Header className={styles.header}>
 
                 <Flex justify="start" align="center" style={{ height: "100%" }}>
-                    <FaPlaneUp style={{ width: "32px", height: "32px" }} />
-                    <Title level={3} style={{ marginLeft: "18px", marginBottom: 0, marginTop: 0 }}>Travel Planner</Title>
+                    <img
+                        src={TravelIcon}
+                        alt="Travel App Logo"
+                        // 2. Resize the image via CSS since the source file is large
+                        style={{ height: '64px', width: 'auto', marginRight: '0px' }}
+                    />
+                    <Title level={4} style={{ marginLeft: "2px", marginBottom: 0, marginTop: 0 }}>Travel Planner</Title>
                 </Flex>
 
             </Header>

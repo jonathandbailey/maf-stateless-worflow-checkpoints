@@ -80,7 +80,8 @@
 
 .header {
     position: sticky;
-    height: 64px;
+    padding-left: 24px;
+    height: 68px;
     top: 0;
      background: #fff;
     z-index: 10;
