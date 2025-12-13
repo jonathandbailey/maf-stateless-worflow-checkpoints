@@ -50,6 +50,7 @@ public class WorkflowFactory(IAgentFactory agentFactory, IArtifactRepository art
         builder.AddEdge(actNode, hotelWorkerNode);
 
         builder.AddEdge(flightWorkerNode, artifactStorageNode);
+        builder.AddEdge(flightWorkerNode, actNode);
         builder.AddEdge(hotelWorkerNode, artifactStorageNode);
 
         return builder.Build();

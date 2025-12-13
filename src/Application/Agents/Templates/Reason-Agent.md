@@ -36,12 +36,12 @@ Where:
   "status": "Requesting missing travel details from user"
 }
 
-## GenerateTravelPlanArtifacts
-- Creates final travel itinerary when all details are complete
+## CreateFlightOptions
+- Generates flight options based on known travel details
 
 ### Example:
 {
-  "thought": "All travel details are complete, generating final itinerary.",
-  "nextAction": "GenerateTravelPlanArtifacts",
-  "status": "Generating complete travel plan"
+  "thought": "User has provided all necessary travel details, create flight options",
+  "nextAction": "CreateFlightOptions",
+  "status": "Creating flight options"
 }

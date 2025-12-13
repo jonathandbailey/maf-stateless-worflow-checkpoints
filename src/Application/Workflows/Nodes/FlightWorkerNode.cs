@@ -12,11 +12,11 @@ namespace Application.Workflows.Nodes;
 public class FlightWorkerNode(IAgent agent) : 
     ReflectingExecutor<FlightWorkerNode>(WorkflowConstants.FlightWorkerNodeName), 
    
-    IMessageHandler<CreatePlanRequestDto>
+    IMessageHandler<CreateFlightOptions>
 {
     private const string FlightWorkerNodeError = "Flight Worker Node has failed to execute.";
 
-    public async ValueTask HandleAsync(CreatePlanRequestDto message, IWorkflowContext context,
+    public async ValueTask HandleAsync(CreateFlightOptions message, IWorkflowContext context,
         CancellationToken cancellationToken = new CancellationToken())
     {
         using var activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}.handleRequest");
@@ -38,6 +38,8 @@ public class FlightWorkerNode(IAgent agent) :
             activity?.SetTag(WorkflowTelemetryTags.ArtifactKey, "flights");
 
             await context.SendMessageAsync(new ArtifactStorageDto("flights", responseMessage.Text), cancellationToken: cancellationToken);
+
+            await context.SendMessageAsync(new FlightOptionsCreated(), cancellationToken: cancellationToken);
         }
         catch (Exception exception)
         {
