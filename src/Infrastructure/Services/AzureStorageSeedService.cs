@@ -5,7 +5,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Application.Infrastructure;
+namespace Infrastructure.Services;
 
 public class AzureStorageSeedService(
     IServiceProvider serviceProvider,

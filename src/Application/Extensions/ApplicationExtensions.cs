@@ -1,7 +1,5 @@
 ﻿using Application.Agents;
 using Application.Agents.Repository;
-using Application.Infrastructure;
-using Application.Interfaces;
 using Application.Services;
 using Application.Settings;
 using Application.Users;
@@ -30,11 +28,7 @@ public static class ApplicationExtensions
 
       
         services.AddScoped<IWorkflowFactory, WorkflowFactory>();
-
-       
-
-        services.AddHostedService<AzureStorageSeedService>();
-
+    
         services.AddScoped<ISessionContextAccessor, SessionContextAccessor>();
 
         services.AddScoped<ITravelPlanService, TravelPlanService>();
