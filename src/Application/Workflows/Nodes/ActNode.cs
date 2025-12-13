@@ -1,14 +1,17 @@
 ﻿using Application.Observability;
 using Application.Services;
+using Application.Workflows.Dto;
 using Application.Workflows.Events;
 using Microsoft.Agents.AI.Workflows;
 using Microsoft.Agents.AI.Workflows.Reflection;
 using System.Text.Json;
-using Application.Workflows.Dto;
+using Application.Models;
 
 namespace Application.Workflows.Nodes;
 
-public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<ActNode>(WorkflowConstants.ActNodeName), IMessageHandler<ReasoningOutputDto>
+public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<ActNode>(WorkflowConstants.ActNodeName), 
+    IMessageHandler<ReasoningOutputDto>,
+    IMessageHandler<FlightOptionsCreated>
 {
     public async ValueTask HandleAsync(ReasoningOutputDto message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
@@ -31,9 +34,9 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
             case "AskUser":
                 await context.SendMessageAsync(new RequestUserInput(serialized), cancellationToken: cancellationToken);
                 break;
-            case "GenerateTravelPlanArtifacts":
+            case "CreateFlightOptions":
                 var plan = await travelPlanService.LoadAsync();
-                await context.SendMessageAsync(new CreatePlanRequestDto(plan), cancellationToken: cancellationToken);
+                await context.SendMessageAsync(new CreateFlightOptions(plan), cancellationToken: cancellationToken);
                 break;
         }
     }
@@ -44,6 +47,18 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
         await travelPlanService.UpdateAsync(message.TravelPlanUpdate!);
 
         await context.AddEventAsync(new TravelPlanUpdatedEvent(), cancellationToken);
+    }
+
+    public async ValueTask HandleAsync(FlightOptionsCreated message, IWorkflowContext context,
+        CancellationToken cancellationToken = default)
+    {
+        var plan = await travelPlanService.LoadAsync();
+
+        plan.FlightOptionsStatus = FlightOptionsStatus.Created;
+
+        await travelPlanService.SaveAsync(plan);
+
+        await context.SendMessageAsync(new ReasoningInputDto("Flight Options Created", "WorkerInput"), cancellationToken: cancellationToken);
     }
 }
 
