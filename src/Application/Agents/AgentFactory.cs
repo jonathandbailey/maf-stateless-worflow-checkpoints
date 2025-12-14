@@ -106,7 +106,7 @@ public class AgentFactory(IAgentTemplateRepository templateRepository, IAgentMem
 
     private static ChatOptions CreateParserChatOptions()
     {
-        var schema = AIJsonUtilities.CreateJsonSchema(typeof(TravelPlanUpdateDto));
+        var schema = AIJsonUtilities.CreateJsonSchema(typeof(UserParsedDto));
 
         ChatOptions chatOptions = new()
         {

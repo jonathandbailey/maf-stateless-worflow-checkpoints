@@ -7,13 +7,14 @@ Observation: { ... }
 TravelPlanSummary: { ... }
 
 Where:
-- Observation is the latest result from the Act node or worker node
+- Observation is the latest result from the User, Act, or Worker node
 - TravelPlanSummary is a summary view of the current travel plan state 
 
 # Instructions
 
-- Analyze the Observation and TravelPlanSummary update the travel plan accordingly
-- You must gather all information for the TravelPlanSummary
+- Update the state (travelPlanUpdate) based on the inputs in the Observation
+- Analyze the TravelPlan summary to determine what critical information is missing
+- The Observation is only used to update state, it is not used to determine next actions (that is the role of the TravelPlan summary)
 - DO NOT proceed to the next action until all required information is gathered
 - Dates should always be in ISO 8601 format.
 

@@ -26,7 +26,7 @@ User : I want to plan a trip to Paris on the 13th of December, 2025
 {
 	"userMessage" : "I want to plan a trip to Paris on the 13th of December, 2025",
 	"userIntent" : "User wants to plan travel",
-	"TravelPlanInputs": {
+	"intentInputs": {
 		"destination": "Paris",
 		"startDate": "2025-12-13"
 	}

@@ -6,7 +6,7 @@ public class UserParsedDto
 
     public string UserIntent { get; set; }
     
-    public TravelPlanUpdateDto? TravelPlanInputs { get; set; }
+    public TravelPlanUpdateDto? IntentInputs { get; set; }
 }
 
 public class ReasoningOutputDto
