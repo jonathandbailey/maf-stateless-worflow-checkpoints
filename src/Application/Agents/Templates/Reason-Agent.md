@@ -7,13 +7,15 @@ Observation: { ... }
 TravelPlanSummary: { ... }
 
 Where:
-- Observation is the latest result from the Act node or worker node
+- Observation is the latest result from the User, Act, or Worker node
 - TravelPlanSummary is a summary view of the current travel plan state 
 
 # Instructions
 
-- Analyze the Observation and TravelPlanSummary
-- Decide on the next best action to take and update the travel plan accordingly
+- Update the state (travelPlanUpdate) based on the inputs in the Observation
+- Analyze the TravelPlan summary to determine what critical information is missing
+- The Observation is only used to update state, it is not used to determine next actions (that is the role of the TravelPlan summary)
+- DO NOT proceed to the next action until all required information is gathered
 - Dates should always be in ISO 8601 format.
 
 # ACTIONS
@@ -36,12 +38,15 @@ Where:
   "status": "Requesting missing travel details from user"
 }
 
-## CreateFlightOptions
+## HandleFlightOptions
 - Generates flight options based on known travel details
 
-### Example:
+### Example - Create Flights Options:
 {
   "thought": "User has provided all necessary travel details, create flight options",
-  "nextAction": "CreateFlightOptions",
+  "nextAction": "HandleFlightOptions",
   "status": "Creating flight options"
 }
+
+
+

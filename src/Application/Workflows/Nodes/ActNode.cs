@@ -34,9 +34,9 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
             case "AskUser":
                 await context.SendMessageAsync(new RequestUserInput(serialized), cancellationToken: cancellationToken);
                 break;
-            case "CreateFlightOptions":
+            case "HandleFlightOptions":
                 var plan = await travelPlanService.LoadAsync();
-                await context.SendMessageAsync(new CreateFlightOptions(plan), cancellationToken: cancellationToken);
+                await context.SendMessageAsync(new CreateFlightOptions(plan, message), cancellationToken: cancellationToken);
                 break;
         }
     }
@@ -54,11 +54,14 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
     {
         var plan = await travelPlanService.LoadAsync();
 
-        plan.FlightOptionsStatus = FlightOptionsStatus.Created;
+        plan.FlightOptionsStatus = message.FlightOptionsStatus;
+        plan.UserFlightOptionStatus = message.UserFlightOptionStatus;
 
         await travelPlanService.SaveAsync(plan);
 
-        await context.SendMessageAsync(new ReasoningInputDto("Flight Options Created", "WorkerInput"), cancellationToken: cancellationToken);
+        var output = $"Flight Options : {message.FlightOptionsStatus}, User Flight Option Status: {message.UserFlightOptionStatus}";
+
+        await context.SendMessageAsync(new ReasoningInputDto(output, "FlightWorkerInput"), cancellationToken: cancellationToken);
     }
 }
 
