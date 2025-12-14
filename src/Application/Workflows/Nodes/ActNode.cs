@@ -58,7 +58,7 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
 
         await travelPlanService.SaveAsync(plan);
 
-        await context.SendMessageAsync(new ReasoningInputDto("Flight Options Created", "WorkerInput"), cancellationToken: cancellationToken);
+        await context.SendMessageAsync(new ReasoningInputDto("Flight Options Created and sent to User", "WorkerInput"), cancellationToken: cancellationToken);
     }
 }
 

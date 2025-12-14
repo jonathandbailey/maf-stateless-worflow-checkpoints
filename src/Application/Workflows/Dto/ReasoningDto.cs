@@ -1,5 +1,14 @@
 ﻿namespace Application.Workflows.Dto;
 
+public class UserParsedDto
+{
+    public string UserMessage { get; set; }
+
+    public string UserIntent { get; set; }
+    
+    public TravelPlanUpdateDto? TravelPlanInputs { get; set; }
+}
+
 public class ReasoningOutputDto
 {
     public string Thought { get; set; } = string.Empty;

@@ -12,8 +12,9 @@ Where:
 
 # Instructions
 
-- Analyze the Observation and TravelPlanSummary
-- Decide on the next best action to take and update the travel plan accordingly
+- Analyze the Observation and TravelPlanSummary update the travel plan accordingly
+- You must gather all information for the TravelPlanSummary
+- DO NOT proceed to the next action until all required information is gathered
 - Dates should always be in ISO 8601 format.
 
 # ACTIONS
@@ -38,11 +39,11 @@ Where:
 
 ## HandleFlightOptions
 - Generates flight options based on known travel details
-- Handle User flight selection
 
-### Example:
+### Example - Create Flights Options:
 {
   "thought": "User has provided all necessary travel details, create flight options",
   "nextAction": "HandleFlightOptions",
   "status": "Creating flight options"
 }
+
