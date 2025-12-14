@@ -36,12 +36,13 @@ Where:
   "status": "Requesting missing travel details from user"
 }
 
-## CreateFlightOptions
+## HandleFlightOptions
 - Generates flight options based on known travel details
+- Handle User flight selection
 
 ### Example:
 {
   "thought": "User has provided all necessary travel details, create flight options",
-  "nextAction": "CreateFlightOptions",
+  "nextAction": "HandleFlightOptions",
   "status": "Creating flight options"
 }
