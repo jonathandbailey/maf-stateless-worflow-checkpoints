@@ -48,8 +48,8 @@ const TravelPlan = ({ travelPlan }: TravelPlanProps) => {
                 )}
             </Flex>
             <div>
-                {travelPlan?.selectedFlightOption && (
-                    <Flight flight={travelPlan.selectedFlightOption} />
+                {travelPlan?.flightPlan?.flightOption && (
+                    <Flight flight={travelPlan.flightPlan.flightOption} />
                 )}
             </div>
         </>

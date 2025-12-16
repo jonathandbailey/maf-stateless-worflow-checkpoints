@@ -16,6 +16,9 @@ public interface ITravelPlanService
     Task<TravelPlan> LoadAsync();
     Task<string> GetSummary();
     Task UpdateAsync(TravelPlanUpdateDto messageTravelPlanUpdate);
+    Task<TravelPlan> AddFlightSearchOption(FlightOptionSearch option);
+    Task<TravelPlan> SelectFlightOption(FlightOption flightOption);
+    Task<FlightSearchResultDto> GetFlightOptionsAsync();
 }
 
 public class TravelPlanService(IAzureStorageRepository repository, ISessionContextAccessor sessionContextAccessor, IOptions<AzureStorageSeedSettings> settings) : ITravelPlanService
@@ -29,6 +32,42 @@ public class TravelPlanService(IAzureStorageRepository repository, ISessionConte
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new JsonStringEnumConverter() }
     };
+
+    public async Task<TravelPlan> AddFlightSearchOption(FlightOptionSearch option)
+    {
+        var travelPlan = await LoadAsync();
+
+        travelPlan.AddFlightSearchOption(option);
+
+        await SaveAsync(travelPlan);
+
+        return travelPlan;
+    }
+
+    public async Task<FlightSearchResultDto> GetFlightOptionsAsync()
+    {
+
+        var travelPlan = await LoadAsync();
+        
+        var filename = GetArtifactFileName(travelPlan.FlightPlan.FlightOptions.First().Id.ToString());
+
+        var response = await repository.DownloadTextBlobAsync(filename, settings.Value.ContainerName);
+
+        var flightPlan = JsonSerializer.Deserialize<FlightSearchResultDto>(response, SerializerOptions);
+
+        return flightPlan ?? throw new InvalidOperationException($"Failed to deserialize flight plan from blob: {filename}");
+    }
+
+    public async Task<TravelPlan> SelectFlightOption(FlightOption flightOption)
+    {
+        var travelPlan = await LoadAsync();
+
+        travelPlan.SelectFlightOption(flightOption);
+
+        await SaveAsync(travelPlan);
+
+        return travelPlan;
+    }
 
     public async Task<string> GetSummary()
     {
@@ -102,5 +141,13 @@ public class TravelPlanService(IAzureStorageRepository repository, ISessionConte
         var sessionId = sessionContextAccessor.Context.SessionId;
 
         return $"{userId}/{sessionId}/plans/travel-plan.json";
+    }
+
+    private string GetArtifactFileName(string name)
+    {
+        var userId = sessionContextAccessor.Context.UserId;
+        var sessionId = sessionContextAccessor.Context.SessionId;
+
+        return $"{userId}/{sessionId}/artifacts/{name}.json";
     }
 }

@@ -24,7 +24,7 @@ public class ArtifactStorageNode(IArtifactRepository artifactRepository) :
 
         try
         {
-            await artifactRepository.SaveAsync(message.Content, message.Key);
+            await artifactRepository.SaveAsync(message.Content, message.Id.ToString());
 
             await context.AddEventAsync(new ArtifactStatusEvent(message.Key, ArtifactStatus.Created), cancellationToken);
         }

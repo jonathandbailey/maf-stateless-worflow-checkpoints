@@ -24,6 +24,8 @@ public class CreatePlanRequestDto(TravelPlan travelPlan)
 
 public class ArtifactStorageDto(string key, string content)
 {
+    public Guid Id { get; set; } = Guid.NewGuid();
+    
     public string Key { get; } = key;
 
     public string Content { get; } = content;

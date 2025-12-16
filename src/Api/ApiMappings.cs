@@ -56,13 +56,13 @@ public static class ApiMappings
 
     private static async Task<Ok<FlightSearchResultDto>> GetFlightPlan(
         Guid sessionId, 
-        IArtifactRepository service,
+        ITravelPlanService service,
         ISessionContextAccessor sessionContextAccessor,
         HttpContext context)
     {
         sessionContextAccessor.Initialize(context.User.Id(), sessionId);
 
-        var flightPlan = await service.GetFlightPlanAsync();
+        var flightPlan = await service.GetFlightOptionsAsync();
         return TypedResults.Ok(flightPlan);
     }
 

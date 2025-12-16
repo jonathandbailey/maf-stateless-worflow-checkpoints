@@ -9,13 +9,78 @@ public class TravelPlan
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
 
+    public TravelPlanStatus TravelPlanStatus { get; set; } = TravelPlanStatus.NotStarted;
+
+    public FlightOptionDto? SelectedFlightOption { get; set; }
+
+    public FlightPlan FlightPlan { get; set; } = new();
+
+    public void AddFlightSearchOption(FlightOptionSearch flightOptions)
+    {
+        FlightPlan.AddFlightOptions(flightOptions);
+    }
+
+    public void SelectFlightOption(FlightOption flightOption)
+    {
+        FlightPlan.SelectFlightOption(flightOption);
+    }
+}
+
+public class FlightOptionSearch
+{
+    public FlightOptionSearch(Guid id)
+    {
+        Id = id;
+    }
+
+    public Guid Id { get; set; }
+}
+
+public class FlightPlan
+{
     public FlightOptionsStatus FlightOptionsStatus { get; set; } = FlightOptionsStatus.NotCreated;
 
     public UserFlightOptionsStatus UserFlightOptionStatus { get; set; } = UserFlightOptionsStatus.NotSelected;
 
-    public TravelPlanStatus TravelPlanStatus { get; set; } = TravelPlanStatus.NotStarted;
+    public List<FlightOptionSearch> FlightOptions { get; set; } = new();
 
-    public FlightOptionDto? SelectedFlightOption { get; set; }
+    public FlightOption FlightOption { get; set; }
+
+    public void SelectFlightOption(FlightOption flightOption)
+    {
+        FlightOption = flightOption;
+        UserFlightOptionStatus = UserFlightOptionsStatus.Selected;
+    }
+
+    public void AddFlightOptions(FlightOptionSearch flightOptions)
+    {
+        FlightOptions.Add(flightOptions);
+
+        FlightOptionsStatus = FlightOptionsStatus.Created;
+        UserFlightOptionStatus = UserFlightOptionsStatus.UserChoiceRequired;
+    }
+}
+
+public class FlightOption
+{
+    public string Airline { get; set; }
+    public string FlightNumber { get; set; }
+    public FlightEndpoint Departure { get; set; }
+    public FlightEndpoint Arrival { get; set; }
+    public string Duration { get; set; }
+    public FlightPrice Price { get; set; }
+}
+
+public class FlightEndpoint
+{
+    public string Airport { get; set; }
+    public DateTime Datetime { get; set; }
+}
+
+public class FlightPrice
+{
+    public decimal Amount { get; set; }
+    public string Currency { get; set; }
 }
 
 public class TravelPlanSummary(TravelPlan plan)
@@ -28,9 +93,9 @@ public class TravelPlanSummary(TravelPlan plan)
 
     public string EndDate { get; set; } = plan.EndDate?.ToString("yyyy-MM-dd") ?? TravelPlanSummaryConstants.NotSet;
 
-    public string FlightOptionStatus { get; set; } = plan.FlightOptionsStatus.ToString();
+    public string FlightOptionStatus { get; set; } = plan.FlightPlan.FlightOptionsStatus.ToString();
 
-    public string UserFlightOptionStatus { get; set; } = plan.UserFlightOptionStatus.ToString();
+    public string UserFlightOptionStatus { get; set; } = plan.FlightPlan.UserFlightOptionStatus.ToString();
 
     public string TravelPlanStatus { get; set; } = plan.TravelPlanStatus.ToString();
 }

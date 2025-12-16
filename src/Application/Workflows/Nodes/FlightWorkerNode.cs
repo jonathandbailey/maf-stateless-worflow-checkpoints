@@ -1,5 +1,8 @@
 ﻿using Application.Agents;
+using Application.Interfaces;
+using Application.Models;
 using Application.Observability;
+using Application.Services;
 using Application.Workflows.Dto;
 using Application.Workflows.Events;
 using Microsoft.Agents.AI.Workflows;
@@ -7,12 +10,10 @@ using Microsoft.Agents.AI.Workflows.Reflection;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Application.Interfaces;
-using Application.Models;
 
 namespace Application.Workflows.Nodes;
 
-public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactRepository) : 
+public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactRepository, ITravelPlanService travelPlanService) : 
     ReflectingExecutor<FlightWorkerNode>(WorkflowConstants.FlightWorkerNodeName), 
    
     IMessageHandler<CreateFlightOptions>
@@ -28,7 +29,7 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
     };
 
     public async ValueTask HandleAsync(CreateFlightOptions message, IWorkflowContext context,
-        CancellationToken cancellationToken = new CancellationToken())
+        CancellationToken cancellationToken = default)
     {
         using var activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}.handleRequest");
 
@@ -62,13 +63,23 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
 
             if (flightOptions.Action == "FlightOptionsCreated")
             {
-                await context.SendMessageAsync(new ArtifactStorageDto("flights", payload), cancellationToken: cancellationToken);
+                var searchArtifact = new ArtifactStorageDto("flights", payload);
+
+                var travelPlan = await travelPlanService.AddFlightSearchOption(new FlightOptionSearch(searchArtifact.Id));
+
+                await context.SendMessageAsync(searchArtifact, cancellationToken: cancellationToken);
 
                 await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.UserChoiceRequired, flightOptions.FlightOptions), cancellationToken: cancellationToken);
             }
 
             if (flightOptions.Action == "FlightOptionsSelected")
             {
+                var flightOption = flightOptions.FlightOptions.Results.First();
+
+                var mapped = MapFlightOption(flightOption);
+
+                await travelPlanService.SelectFlightOption(mapped);
+                
                 await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.Selected, flightOptions.FlightOptions), cancellationToken: cancellationToken);
             }
 
@@ -77,5 +88,30 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
         {
             await context.AddEventAsync(new TravelWorkflowErrorEvent(FlightWorkerNodeError, "flights", WorkflowConstants.FlightWorkerNodeName, exception), cancellationToken);
         }
+    }
+
+    private FlightOption MapFlightOption(FlightOptionDto flightOption)
+    {
+        return new FlightOption
+        {
+            Airline = flightOption.Airline,
+            FlightNumber = flightOption.FlightNumber,
+            Departure = new FlightEndpoint
+            {
+                Airport = flightOption.Departure.Airport,
+                Datetime = flightOption.Departure.Datetime
+            },
+            Arrival = new FlightEndpoint
+            {
+                Airport = flightOption.Arrival.Airport,
+                Datetime = flightOption.Arrival.Datetime
+            },
+            Duration = flightOption.Duration,
+            Price = new FlightPrice
+            {
+                Amount = flightOption.Price.Amount,
+                Currency = flightOption.Price.Currency
+            }
+        };
     }
 }
