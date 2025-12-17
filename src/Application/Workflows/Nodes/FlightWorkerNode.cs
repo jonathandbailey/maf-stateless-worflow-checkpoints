@@ -1,6 +1,4 @@
 ﻿using Application.Agents;
-using Application.Interfaces;
-using Application.Models.Flights;
 using Application.Observability;
 using Application.Services;
 using Application.Workflows.Dto;
@@ -13,22 +11,24 @@ using System.Text.Json.Serialization;
 
 namespace Application.Workflows.Nodes;
 
-public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactRepository, ITravelPlanService travelPlanService) : 
+public class FlightWorkerNode(IAgent agent, ITravelPlanService travelPlanService) : 
     ReflectingExecutor<FlightWorkerNode>(WorkflowConstants.FlightWorkerNodeName), 
    
-    IMessageHandler<CreateFlightOptions>
+    IMessageHandler<CreateFlightOptions, AgentResponse>
 {
     private const string FlightWorkerNodeError = "Flight Worker Node has failed to execute.";
+    private const string FlightAgent = "Flight Agent";
+    private const string FlightsOptionsCreated = "Flights Options Created";
+    private const string FlightOptionSelected = "Flight Option Selected";
+    private const string FailedToDeserializeFlightOptionsInFlightWorkerNode = "Failed to deserialize flight options in Flight Worker Node";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-        Converters = { new JsonStringEnumConverter() }
+        Converters = { new JsonStringEnumConverter() },
     };
 
-    public async ValueTask HandleAsync(CreateFlightOptions message, IWorkflowContext context,
+    public async ValueTask<AgentResponse> HandleAsync(CreateFlightOptions message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
         using var activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}{WorkflowConstants.HandleRequest}");
@@ -43,72 +43,38 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
 
             var response = await agent.RunAsync(new ChatMessage(ChatRole.User, serialized), cancellationToken: cancellationToken);
    
-            WorkflowTelemetryTags.SetInputPreview(activity, response.Text);
+            WorkflowTelemetryTags.SetOutputPreview(activity, response.Text);
        
-            var flightOptions = JsonSerializer.Deserialize<FlightActionResultDto>(response.Text, SerializerOptions);
+            var flightSearchResults = JsonSerializer.Deserialize<FlightActionResultDto>(response.Text, SerializerOptions);
 
-            if (flightOptions == null)
-                throw new JsonException("Failed to deserialize flight options in Flight Worker Node");
-
-            var payload = JsonSerializer.Serialize(flightOptions.FlightOptions, SerializerOptions);
-
-
-            switch (flightOptions.Action)
+            if (flightSearchResults == null)
+                throw new JsonException(FailedToDeserializeFlightOptionsInFlightWorkerNode);
+      
+            switch (flightSearchResults.Action)
             {
                 case FlightAction.FlightOptionsCreated:
                 {
-                    var searchArtifact = new ArtifactStorageDto("flights", payload);
-
-                    var travelPlan = await travelPlanService.AddFlightSearchOption(new FlightOptionSearch(searchArtifact.Id));
-
-                    await context.SendMessageAsync(searchArtifact, cancellationToken: cancellationToken);
-
-                    await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.UserChoiceRequired, flightOptions.FlightOptions), cancellationToken: cancellationToken);
-                    break;
+                    await travelPlanService.AddFlightSearchOption(flightSearchResults.FlightOptions);
+               
+                    return new AgentResponse(FlightAgent, FlightsOptionsCreated, AgentResponseStatus.Success);
                 }
+                
                 case FlightAction.FlightOptionsSelected:
                 {
-                    var flightOption = flightOptions.FlightOptions.Results.First();
+                    await travelPlanService.SelectFlightOption(flightSearchResults.FlightOptions);
 
-                    var mapped = MapFlightOption(flightOption);
-
-                    await travelPlanService.SelectFlightOption(mapped);
-                
-                    await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.Selected, flightOptions.FlightOptions), cancellationToken: cancellationToken);
-                    break;
+                    return new AgentResponse(FlightAgent, FlightOptionSelected, AgentResponseStatus.Success);
                 }
+                
                 default:
-                    throw new ArgumentOutOfRangeException();
+                    throw new ArgumentException("Action value is not valid.", nameof(flightSearchResults));
             }
         }
         catch (Exception exception)
         {
-            await context.AddEventAsync(new TravelWorkflowErrorEvent(FlightWorkerNodeError, "flights", WorkflowConstants.FlightWorkerNodeName, exception), cancellationToken);
-        }
-    }
+            await context.AddEventAsync(new TravelWorkflowErrorEvent(exception.Message, FlightWorkerNodeError, WorkflowConstants.FlightWorkerNodeName, exception), cancellationToken);
 
-    private FlightOption MapFlightOption(FlightOptionDto flightOption)
-    {
-        return new FlightOption
-        {
-            Airline = flightOption.Airline,
-            FlightNumber = flightOption.FlightNumber,
-            Departure = new FlightEndpoint
-            {
-                Airport = flightOption.Departure.Airport,
-                Datetime = flightOption.Departure.Datetime
-            },
-            Arrival = new FlightEndpoint
-            {
-                Airport = flightOption.Arrival.Airport,
-                Datetime = flightOption.Arrival.Datetime
-            },
-            Duration = flightOption.Duration,
-            Price = new FlightPrice
-            {
-                Amount = flightOption.Price.Amount,
-                Currency = flightOption.Price.Currency
-            }
-        };
+            return new AgentResponse(FlightAgent, exception.Message, AgentResponseStatus.Error);
+        }
     }
 }

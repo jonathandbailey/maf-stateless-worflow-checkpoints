@@ -18,6 +18,26 @@ public class FlightOptionsCreated(FlightOptionsStatus flightOptionsStatus, UserF
     public FlightSearchResultDto FlightOptions { get; set; } = flightOptions;
 }
 
+public class AgentResponse(string source, string message, AgentResponseStatus status)
+{
+    public string Source { get; } = source;
+    
+    public string Message { get; } = message;
+
+    public AgentResponseStatus Status { get; } = status;
+
+    public override string ToString()
+    {
+        return $"{Source} : {Message}, Status: {Status}";
+    }
+}
+
+public enum AgentResponseStatus
+{
+        Success,
+        Error
+}
+
 public class CreatePlanRequestDto(TravelPlan travelPlan)
 {
     public TravelPlan TravelPlan => travelPlan;

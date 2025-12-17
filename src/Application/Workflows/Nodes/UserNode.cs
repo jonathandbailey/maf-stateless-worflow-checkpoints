@@ -56,6 +56,6 @@ public class UserNode(IAgent agent, IAgent parsingAgent) : ReflectingExecutor<Us
 
         WorkflowTelemetryTags.Preview(activity, WorkflowTelemetryTags.OutputNodePreview, response.Text);
 
-        return new ReasoningInputDto(response.Text, "UserInput");
+        return new ReasoningInputDto(response.Text);
     }
 }

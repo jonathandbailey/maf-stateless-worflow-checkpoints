@@ -10,7 +10,7 @@ namespace Application.Workflows.Nodes;
 
 public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<ActNode>(WorkflowConstants.ActNodeName), 
     IMessageHandler<ReasoningOutputDto>,
-    IMessageHandler<FlightOptionsCreated, ReasoningInputDto>
+    IMessageHandler<AgentResponse, ReasoningInputDto>
 {
     public async ValueTask HandleAsync(ReasoningOutputDto message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
@@ -45,14 +45,12 @@ public class ActNode(ITravelPlanService travelPlanService) : ReflectingExecutor<
                 throw new ArgumentOutOfRangeException(nameof(message),"Unknown NextAction");
         }
     }
-    public async ValueTask<ReasoningInputDto> HandleAsync(FlightOptionsCreated message, IWorkflowContext context,
+    public async ValueTask<ReasoningInputDto> HandleAsync(AgentResponse agentResponse, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
         await context.AddEventAsync(new TravelPlanUpdatedEvent(), cancellationToken);
-
-        var output = $"Flight Options : {message.FlightOptionsStatus}, User Flight Option Status: {message.UserFlightOptionStatus}";
-
-        return new ReasoningInputDto(output, "FlightWorkerInput");
+  
+        return new ReasoningInputDto(agentResponse.ToString());
     }
 }
 

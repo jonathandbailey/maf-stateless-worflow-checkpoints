@@ -36,11 +36,9 @@ public enum NextAction
     Error
 }
 
-public class ReasoningInputDto(string observation, string resultType)
+public class ReasoningInputDto(string observation)
 {
     public string Observation { get; } = observation;
-
-    public string ResultType { get; } = resultType;
 }
 
 public class ReasoningState(string observation, TravelPlanSummary travelPlanSummary)

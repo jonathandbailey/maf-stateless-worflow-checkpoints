@@ -17,32 +17,33 @@ public interface ITravelPlanService
     Task<TravelPlan> LoadAsync();
     Task<TravelPlanSummary> GetSummary();
     Task UpdateAsync(TravelPlanUpdateDto messageTravelPlanUpdate);
-    Task<TravelPlan> AddFlightSearchOption(FlightOptionSearch option);
-    Task<TravelPlan> SelectFlightOption(FlightOption flightOption);
+    Task<TravelPlan> AddFlightSearchOption(FlightSearchResultDto option);
+    Task<TravelPlan> SelectFlightOption(FlightSearchResultDto option);
     Task<FlightSearchResultDto> GetFlightOptionsAsync();
     Task CreateTravelPlan();
 }
 
-public class TravelPlanService(IAzureStorageRepository repository, ISessionContextAccessor sessionContextAccessor, IOptions<AzureStorageSeedSettings> settings) : ITravelPlanService
+public class TravelPlanService(IAzureStorageRepository repository, IArtifactRepository artifactRepository, ISessionContextAccessor sessionContextAccessor, IOptions<AzureStorageSeedSettings> settings) : ITravelPlanService
 {
     private const string ApplicationJsonContentType = "application/json";
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
-        WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         Converters = { new JsonStringEnumConverter() },
-        PropertyNameCaseInsensitive = false,
-        AllowTrailingCommas = false,
-        ReadCommentHandling = JsonCommentHandling.Disallow
     };
 
-    public async Task<TravelPlan> AddFlightSearchOption(FlightOptionSearch option)
+    public async Task<TravelPlan> AddFlightSearchOption(FlightSearchResultDto option)
     {
         var travelPlan = await LoadAsync();
 
-        travelPlan.AddFlightSearchOption(option);
+        var payload = JsonSerializer.Serialize(option, SerializerOptions);
+
+        var id = Guid.NewGuid();
+
+        await artifactRepository.SaveAsync(payload, id.ToString());
+
+        travelPlan.AddFlightSearchOption(new FlightOptionSearch(id));
 
         await SaveAsync(travelPlan);
 
@@ -63,15 +64,44 @@ public class TravelPlanService(IAzureStorageRepository repository, ISessionConte
         return flightPlan ?? throw new InvalidOperationException($"Failed to deserialize flight plan from blob: {filename}");
     }
 
-    public async Task<TravelPlan> SelectFlightOption(FlightOption flightOption)
+    public async Task<TravelPlan> SelectFlightOption(FlightSearchResultDto option)
     {
         var travelPlan = await LoadAsync();
 
-        travelPlan.SelectFlightOption(flightOption);
+        var flightOption = option.Results.First();
+
+        var mapped = MapFlightOption(flightOption);
+
+        travelPlan.SelectFlightOption(mapped);
 
         await SaveAsync(travelPlan);
 
         return travelPlan;
+    }
+
+    private FlightOption MapFlightOption(FlightOptionDto flightOption)
+    {
+        return new FlightOption
+        {
+            Airline = flightOption.Airline,
+            FlightNumber = flightOption.FlightNumber,
+            Departure = new FlightEndpoint
+            {
+                Airport = flightOption.Departure.Airport,
+                Datetime = flightOption.Departure.Datetime
+            },
+            Arrival = new FlightEndpoint
+            {
+                Airport = flightOption.Arrival.Airport,
+                Datetime = flightOption.Arrival.Datetime
+            },
+            Duration = flightOption.Duration,
+            Price = new FlightPrice
+            {
+                Amount = flightOption.Price.Amount,
+                Currency = flightOption.Price.Currency
+            }
+        };
     }
 
     public async Task<TravelPlanSummary> GetSummary()
