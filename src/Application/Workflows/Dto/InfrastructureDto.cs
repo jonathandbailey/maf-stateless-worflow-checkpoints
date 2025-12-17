@@ -32,10 +32,16 @@ public class ArtifactStorageDto(string key, string content)
     public string Content { get; } = content;
 }
 
+public enum FlightAction
+{
+    FlightOptionsCreated,
+    FlightOptionsSelected
+}
+
 public class FlightActionResultDto
 {
     public FlightSearchResultDto FlightOptions { get; set; }
-    public string Action { get; set; }
+    public FlightAction Action { get; set; }
 
     public string Status { get; set; }
 }

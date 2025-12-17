@@ -1,14 +1,20 @@
-﻿namespace Application.Models.Flights;
+﻿using System.Text.Json.Serialization;
+
+namespace Application.Models.Flights;
 
 public class FlightPlan
 {
-    public FlightOptionsStatus FlightOptionsStatus { get; set; } = FlightOptionsStatus.NotCreated;
+    [JsonInclude]
+    public FlightOptionsStatus FlightOptionsStatus { get; private set; } = FlightOptionsStatus.NotCreated;
 
-    public UserFlightOptionsStatus UserFlightOptionStatus { get; set; } = UserFlightOptionsStatus.NotSelected;
+    [JsonInclude]
+    public UserFlightOptionsStatus UserFlightOptionStatus { get; private set; } = UserFlightOptionsStatus.NotSelected;
 
-    public List<FlightOptionSearch> FlightOptions { get; set; } = [];
+    [JsonInclude]
+    public List<FlightOptionSearch> FlightOptions { get; private set; } = [];
 
-    public FlightOption? FlightOption { get; set; }
+    [JsonInclude]
+    public FlightOption? FlightOption { get; private set; }
 
     public void SelectFlightOption(FlightOption flightOption)
     {

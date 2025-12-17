@@ -46,6 +46,7 @@ public class TravelPlan
     public void SetDestination(string destination)
     {
         ArgumentException.ThrowIfNullOrEmpty(destination);
+
         if (destination != Destination)
             Destination = destination;
     }

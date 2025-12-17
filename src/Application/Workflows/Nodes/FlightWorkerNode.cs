@@ -1,6 +1,5 @@
 ﻿using Application.Agents;
 using Application.Interfaces;
-using Application.Models;
 using Application.Models.Flights;
 using Application.Observability;
 using Application.Services;
@@ -32,7 +31,7 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
     public async ValueTask HandleAsync(CreateFlightOptions message, IWorkflowContext context,
         CancellationToken cancellationToken = default)
     {
-        using var activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}.handleRequest");
+        using var activity = Telemetry.Start($"{WorkflowConstants.FlightWorkerNodeName}{WorkflowConstants.HandleRequest}");
 
         activity?.SetTag(WorkflowTelemetryTags.Node, WorkflowConstants.FlightWorkerNodeName);
 
@@ -42,48 +41,45 @@ public class FlightWorkerNode(IAgent agent, IArtifactRepository artifactReposito
 
             WorkflowTelemetryTags.SetInputPreview(activity, serialized);
 
-            if (await artifactRepository.FlightsExistsAsync())
-            {
-                var flights = await artifactRepository.GetFlightPlanAsync();
-            }
-
             var response = await agent.RunAsync(new ChatMessage(ChatRole.User, serialized), cancellationToken: cancellationToken);
-
-            var responseMessage = response.Messages.First();
-
-            WorkflowTelemetryTags.SetInputPreview(activity, responseMessage.Text);
-
-            activity?.SetTag(WorkflowTelemetryTags.ArtifactKey, "flights");
-
-            var flightOptions = response.Deserialize<FlightActionResultDto>(JsonSerializerOptions.Web);
+   
+            WorkflowTelemetryTags.SetInputPreview(activity, response.Text);
+       
+            var flightOptions = JsonSerializer.Deserialize<FlightActionResultDto>(response.Text, SerializerOptions);
 
             if (flightOptions == null)
                 throw new JsonException("Failed to deserialize flight options in Flight Worker Node");
 
             var payload = JsonSerializer.Serialize(flightOptions.FlightOptions, SerializerOptions);
 
-            if (flightOptions.Action == "FlightOptionsCreated")
+
+            switch (flightOptions.Action)
             {
-                var searchArtifact = new ArtifactStorageDto("flights", payload);
+                case FlightAction.FlightOptionsCreated:
+                {
+                    var searchArtifact = new ArtifactStorageDto("flights", payload);
 
-                var travelPlan = await travelPlanService.AddFlightSearchOption(new FlightOptionSearch(searchArtifact.Id));
+                    var travelPlan = await travelPlanService.AddFlightSearchOption(new FlightOptionSearch(searchArtifact.Id));
 
-                await context.SendMessageAsync(searchArtifact, cancellationToken: cancellationToken);
+                    await context.SendMessageAsync(searchArtifact, cancellationToken: cancellationToken);
 
-                await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.UserChoiceRequired, flightOptions.FlightOptions), cancellationToken: cancellationToken);
-            }
+                    await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.UserChoiceRequired, flightOptions.FlightOptions), cancellationToken: cancellationToken);
+                    break;
+                }
+                case FlightAction.FlightOptionsSelected:
+                {
+                    var flightOption = flightOptions.FlightOptions.Results.First();
 
-            if (flightOptions.Action == "FlightOptionsSelected")
-            {
-                var flightOption = flightOptions.FlightOptions.Results.First();
+                    var mapped = MapFlightOption(flightOption);
 
-                var mapped = MapFlightOption(flightOption);
-
-                await travelPlanService.SelectFlightOption(mapped);
+                    await travelPlanService.SelectFlightOption(mapped);
                 
-                await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.Selected, flightOptions.FlightOptions), cancellationToken: cancellationToken);
+                    await context.SendMessageAsync(new FlightOptionsCreated(FlightOptionsStatus.Created, UserFlightOptionsStatus.Selected, flightOptions.FlightOptions), cancellationToken: cancellationToken);
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
-
         }
         catch (Exception exception)
         {
