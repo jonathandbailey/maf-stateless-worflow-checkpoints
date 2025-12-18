@@ -1,6 +1,6 @@
 import { Tabs, type TabsProps } from "antd";
 import { useState } from "react";
-import { useArtifactHandler } from "../../../hooks/useArtifactHandler";
+import { useArtifactHandler } from "../../../features/travel-planning/hooks/useArtifactHandler";
 
 interface TravelOptionsProps {
     sessionId: string;

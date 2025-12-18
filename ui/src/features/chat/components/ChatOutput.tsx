@@ -1,8 +1,9 @@
 import { Divider, Flex, Tabs } from "antd";
-import type { UIExchange } from "../../types/ui/UIExchange";
+import type { UIExchange } from "../../../types/ui/UIExchange";
 import UserMessage from "./UserMessage";
 import AssistantMessage from "./AssistantMessage";
 import AgentStatus from "./AgentStatus";
+
 
 interface ChatOutputProps {
     exchanges: UIExchange[];

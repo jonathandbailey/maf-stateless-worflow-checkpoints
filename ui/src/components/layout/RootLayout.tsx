@@ -1,4 +1,4 @@
-import ChatInput from "../chat/ChatInput"
+import ChatInput from "../../features/chat/components/ChatInput"
 import { Flex, Layout } from "antd"
 import { useState } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
@@ -6,19 +6,19 @@ import { ConversationService } from "../../services/conversation.service";
 import styles from './RootLayout.module.css';
 import { UIFactory } from '../../factories/UIFactory';
 import type { Status } from "../../types/ui/Status";
-import { useChatResponseHandler } from "../../hooks/useChatResponseHandler";
-import { useStatusUpdateHandler } from "../../hooks/useStatusUpdateHandler";
-import { useTravelPlanUpdateHandler } from "../../hooks/useExchangeStatusUpdateHandler";
 import TravelPlan from "../travel/plan/TravelPlan";
 import type { TravelPlanDto } from "../../types/dto/travel-plan.dto";
-import AgentFeedback from "../chat/AgentFeedback";
 
 import Welcome from "./Welcome";
 
 import RootHeader from "./RootHeader";
-import ChatOutput from "../chat/ChatOutput";
+import ChatOutput from "../../features/chat/components/ChatOutput";
 import NavigationHeader from "./NavigationHeader";
 import TravelOptions from "../travel/plan/TravelOptions";
+import AgentFeedback from "../../features/chat/components/AgentFeedback";
+import { useChatResponseHandler } from "../../features/chat/hooks/useChatResponseHandler";
+import { useStatusUpdateHandler } from "../../features/chat/hooks/useStatusUpdateHandler";
+import { useTravelPlanUpdateHandler } from "../../features/chat/hooks/useExchangeStatusUpdateHandler";
 
 const { Header, Sider, Content } = Layout;
 

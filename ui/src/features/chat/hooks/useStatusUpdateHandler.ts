@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import type { ChatResponseDto } from "../types/dto/chat-response.dto";
-import type { Status } from "../types/ui/Status";
-import type { UIExchange } from "../types/ui/UIExchange";
-import streamingService from "../services/streaming.service";
+import type { ChatResponseDto } from "../../../types/dto/chat-response.dto";
+import type { Status } from "../../../types/ui/Status";
+import type { UIExchange } from "../../../types/ui/UIExchange";
+import streamingService from "../../../services/streaming.service";
 
 interface UseStatusUpdateHandlerProps {
     setActiveStatus: React.Dispatch<React.SetStateAction<Status | null>>;

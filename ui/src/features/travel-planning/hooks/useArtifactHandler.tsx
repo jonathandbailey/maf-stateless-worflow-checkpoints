@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import type { TabsProps } from "antd";
-import type { ArtifactStatusDto } from "../types/dto/artifact-status.dto";
-import { ConversationService } from "../services/conversation.service";
-import FlightList from "../components/travel/flights/FlightList";
-import HotelList from "../components/travel/hotels/HotelList";
-import streamingService from "../services/streaming.service";
+import type { ArtifactStatusDto } from "../../../types/dto/artifact-status.dto";
+import { ConversationService } from "../../../services/conversation.service";
+import FlightList from "../../../components/travel/flights/FlightList";
+import HotelList from "../../../components/travel/hotels/HotelList";
+import streamingService from "../../../services/streaming.service";
 
 interface UseArtifactHandlerProps {
     sessionId: string;
@@ -16,7 +16,7 @@ export const useArtifactHandler = ({ sessionId, setTabs, setActiveKey }: UseArti
     useEffect(() => {
         const handleArtifact = (response: ArtifactStatusDto) => {
 
-            if (response.key === 'flights') {
+            if (response.key === 'Flights') {
                 const conversationService = new ConversationService();
                 conversationService.getFlightPlan(sessionId).then(flightPlan => {
                     console.log("Flight plan downloaded:", flightPlan);
