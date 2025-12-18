@@ -13,12 +13,10 @@ export const useTravelPlanUpdateHandler = ({ sessionId, setTravelPlan }: UseExch
 
         const handleExchangeStatusUpdate = () => {
 
-            console.log('Requesting travel plan for sessionId:', sessionId);
             const travelService = new TravelService();
             travelService.getTravelPlan(sessionId)
 
                 .then((travelPlan: TravelPlanDto) => {
-                    console.log('Travel plan received:', travelPlan);
                     setTravelPlan(travelPlan);
                 })
 
