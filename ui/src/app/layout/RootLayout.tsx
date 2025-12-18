@@ -2,7 +2,7 @@ import ChatInput from "../../features/chat/components/ChatInput"
 import { Flex, Layout } from "antd"
 import { useState } from "react";
 import type { UIExchange } from "../../types/ui/UIExchange";
-import { ConversationService } from "../../features/chat/services/conversation.service";
+import { ChatService } from "../../features/chat/api/chat.api";
 import styles from './RootLayout.module.css';
 import type { Status } from "../../types/ui/Status";
 import TravelPlan from "../../features/travel-planning/components/plan/TravelPlan";
@@ -40,8 +40,8 @@ const RootLayout = () => {
 
         setActiveExchange(newExchange);
 
-        const conversationService = new ConversationService();
-        conversationService.startConversationExchange(
+        const conversationService = new ChatService();
+        conversationService.startChatExchange(
             value,
             newExchange.user.id,
             sessionId,

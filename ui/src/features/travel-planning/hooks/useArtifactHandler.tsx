@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import type { TabsProps } from "antd";
-import type { ArtifactStatusDto } from "../../../types/dto/artifact-status.dto";
 import streamingService from "../../../app/services/streaming.service";
 import FlightList from "../components/flights/FlightList";
 import HotelList from "../components/hotels/HotelList";
 import { TravelService } from "../api/travel.api";
+import type { ArtifactStatusDto } from "../../chat/api/chat.dto";
 
 interface UseArtifactHandlerProps {
     sessionId: string;

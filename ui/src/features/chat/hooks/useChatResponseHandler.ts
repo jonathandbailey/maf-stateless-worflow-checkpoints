@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import type { UIExchange } from "../../../types/ui/UIExchange";
-import type { ChatResponseDto } from "../../../types/dto/chat-response.dto";
 import streamingService from "../../../app/services/streaming.service";
 import { UIFactory } from "../factories/UIFactory";
+import type { ChatResponseDto } from "../api/chat.dto";
 
 
 interface UseChatResponseHandlerProps {
