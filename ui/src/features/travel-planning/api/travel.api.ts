@@ -1,8 +1,5 @@
 import apiClient from "../../../api/client/api-client";
-import type { FlightSearchResultDto } from "../../../types/dto/flight.dto";
-import type { HotelSearchResultDto } from "../../../types/dto/hotel.dto";
-import type { TravelPlanDto } from "../../../types/dto/travel-plan.dto";
-
+import type { FlightSearchResultDto, HotelSearchResultDto, TravelPlanDto } from "./travel.dto";
 
 export class TravelService {
 

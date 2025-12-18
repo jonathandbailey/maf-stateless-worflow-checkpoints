@@ -1,6 +1,6 @@
 import { Flex } from "antd";
 import Flight from "./Flight";
-import type { FlightOptionDto } from "../../../../types/dto/flight.dto";
+import type { FlightOptionDto } from "../../api/travel.dto";
 
 
 interface FlightListProps {

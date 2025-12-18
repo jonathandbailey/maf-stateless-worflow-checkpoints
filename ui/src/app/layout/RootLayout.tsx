@@ -6,7 +6,6 @@ import { ConversationService } from "../../features/chat/services/conversation.s
 import styles from './RootLayout.module.css';
 import type { Status } from "../../types/ui/Status";
 import TravelPlan from "../../features/travel-planning/components/plan/TravelPlan";
-import type { TravelPlanDto } from "../../types/dto/travel-plan.dto";
 
 import Welcome from "../../features/dashboard/components/Welcome";
 
@@ -19,6 +18,7 @@ import { useChatResponseHandler } from "../../features/chat/hooks/useChatRespons
 import { useStatusUpdateHandler } from "../../features/chat/hooks/useStatusUpdateHandler";
 import { useTravelPlanUpdateHandler } from "../../features/chat/hooks/useExchangeStatusUpdateHandler";
 import { UIFactory } from "../../features/chat/factories/UIFactory";
+import type { TravelPlanDto } from "../../features/travel-planning/api/travel.dto";
 
 const { Header, Sider, Content } = Layout;
 

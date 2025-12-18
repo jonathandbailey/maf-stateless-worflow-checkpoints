@@ -1,7 +1,7 @@
 import { useEffect } from "react";
-import { TravelService } from "../../travel-planning/services/travel.service";
-import type { TravelPlanDto } from "../../../types/dto/travel-plan.dto";
+import { TravelService } from "../../travel-planning/api/travel.api";
 import streamingService from "../../../app/services/streaming.service";
+import type { TravelPlanDto } from "../../travel-planning/api/travel.dto";
 
 interface UseExchangeStatusUpdateHandlerProps {
     sessionId: string;

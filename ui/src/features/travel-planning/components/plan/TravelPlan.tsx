@@ -1,9 +1,9 @@
 import { Card, Flex, Typography } from "antd";
-import type { TravelPlanDto } from "../../../../types/dto/travel-plan.dto";
 import { ArrowRightOutlined } from "@ant-design/icons";
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import Flight from "../flights/Flight";
+import type { TravelPlanDto } from "../../api/travel.dto";
 
 dayjs.extend(advancedFormat);
 

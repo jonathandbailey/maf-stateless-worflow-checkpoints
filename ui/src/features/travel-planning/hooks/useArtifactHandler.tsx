@@ -4,7 +4,7 @@ import type { ArtifactStatusDto } from "../../../types/dto/artifact-status.dto";
 import streamingService from "../../../app/services/streaming.service";
 import FlightList from "../components/flights/FlightList";
 import HotelList from "../components/hotels/HotelList";
-import { TravelService } from "../services/travel.service";
+import { TravelService } from "../api/travel.api";
 
 interface UseArtifactHandlerProps {
     sessionId: string;
