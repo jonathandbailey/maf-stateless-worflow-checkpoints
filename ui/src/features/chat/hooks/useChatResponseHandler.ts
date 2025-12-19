@@ -14,6 +14,8 @@ export const useChatResponseHandler = ({ setActiveExchange }: UseChatResponseHan
     const { exchanges, addExchange } = useExchangesStore();
 
     useEffect(() => {
+
+
         const handleUserResponse = (response: ChatResponseDto) => {
             if (!response) return;
 

@@ -2,30 +2,33 @@ import { Card, Flex, Spin } from "antd";
 import { OpenAIOutlined } from "@ant-design/icons";
 import type { Exchange } from "../domain/Exchange";
 import { useStatusStore } from "../stores/status.store";
+import { useTokenStreaming } from "../hooks/useTokenStreaming";
 
 interface AgentFeedbackProps {
     message: Exchange;
-
 }
 
 const AgentFeedback = ({ message }: AgentFeedbackProps) => {
+    const { currentStream } = useTokenStreaming(message, {
+        tokenIntervalMs: 50
+    });
 
     const { activeStatus } = useStatusStore();
 
     return (
         <> <Flex vertical>
             <div style={{ marginBottom: "96px", marginLeft: "24px", height: "32px" }} >
-                {!message?.assistant.isLoading && (
-                    <Flex>
-                        <OpenAIOutlined height={48} width={48} />
-                        <Card style={{ boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", marginLeft: "16px" }}>
-                            <div style={{ maxWidth: "600px" }}>{message?.assistant.text}</div>
-                        </Card>
+
+                <Flex>
+                    <OpenAIOutlined height={48} width={48} />
+                    <Card style={{ boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)", marginLeft: "16px", width: "600px" }}>
+                        <div style={{ maxWidth: "600px" }}>{currentStream}</div>
+                    </Card>
 
 
 
 
-                    </Flex>)}
+                </Flex>
 
             </div>
             {message?.assistant.isLoading && (

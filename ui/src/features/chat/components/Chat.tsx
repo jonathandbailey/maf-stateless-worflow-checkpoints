@@ -5,7 +5,6 @@ import { useState } from "react";
 import type { Exchange } from "../domain/Exchange";
 import { ChatService } from "../api/chat.api";
 import { UIFactory } from "../factories/UIFactory";
-import type { Status } from "../domain/Status";
 import { useStatusUpdateHandler } from "../hooks/useStatusUpdateHandler";
 import { useChatResponseHandler } from "../hooks/useChatResponseHandler";
 
@@ -18,7 +17,7 @@ const Chat = ({ sessionId }: ChatProps) => {
     const [activeExchange, setActiveExchange] = useState<Exchange | null>(null);
 
     useStatusUpdateHandler();
-    useChatResponseHandler({ setActiveExchange });
+    //useChatResponseHandler({ setActiveExchange });
 
 
     function handlePrompt(value: string): void {
@@ -33,7 +32,7 @@ const Chat = ({ sessionId }: ChatProps) => {
             sessionId,
             newExchange.assistant.id
         ).then(() => {
-            // Conversation exchange initiated successfully
+
         }).catch(error => {
             console.error("Error during conversation exchange:", error);
         });
